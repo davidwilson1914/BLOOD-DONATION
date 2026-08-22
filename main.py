@@ -7,7 +7,7 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Query, Depends, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 import config
 from models import (
@@ -475,6 +475,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/")
 def serve_index():
     return FileResponse("static/index.html")
+
+
+@app.get("/favicon.ico")
+def serve_favicon():
+    svg_icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🩸</text></svg>'
+    return Response(content=svg_icon, media_type="image/svg+xml")
 
 
 if __name__ == "__main__":
