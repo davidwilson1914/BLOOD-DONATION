@@ -26,7 +26,9 @@ app = FastAPI(
     description="Full-stack Python Blood Donor Matching Platform API with Geospatial Indexing, Privacy Controls & HIPAA Audit Logs.",
     version="1.0.0"
 )
-
+@app.get("/")
+def read_root():
+    return {"message": "Blood Donor Matching Platform API is running!"}
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
