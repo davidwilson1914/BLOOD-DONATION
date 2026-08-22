@@ -10,6 +10,46 @@
 </head>
 <body>
 
+  <!-- Hero Motivation Landing View (Matching Picture 2) -->
+  <div id="hero-landing-screen" class="hero-landing-screen" style="background: #000000 !important; background-color: #000000 !important;">
+    
+    <!-- Top Bar Controls (Picture 2 style) -->
+    <div class="hero-top-bar">
+      <div class="hero-top-capsule">
+        <span style="font-weight: 800; font-size: 0.9rem;">≡</span>
+        <span style="font-size: 0.75rem; font-weight: 700;">LifePulse App</span>
+      </div>
+      <div class="hero-top-circle" onclick="enterMainApp()" title="Enter Main App">
+        <span>🩸</span>
+      </div>
+    </div>
+
+    <!-- Center Motivation Content -->
+    <div class="hero-motivation-center">
+      <h1 class="hero-motivation-headline">
+        Every Drop Counts.<br>
+        <span style="font-weight: 300; opacity: 0.9;">Give Life Today.</span>
+      </h1>
+      
+      <p class="hero-motivation-subtitle">
+        Join the LifePulse emergency blood donor network across Tamil Nadu.<br>
+        Your single blood donation saves up to 3 lives in critical medical care.
+      </p>
+
+      <!-- White Capsule "Let's Donate" Button (Matching Picture 2) -->
+      <button id="hero-lets-donate-btn" class="hero-lets-donate-capsule" onclick="enterMainApp()">
+        <span class="hero-capsule-icon">➔</span>
+        <span style="font-weight: 700; letter-spacing: -0.2px;">Let's Donate</span>
+      </button>
+    </div>
+
+    <!-- Bottom Caption -->
+    <div class="hero-bottom-caption">
+      TAMIL NADU EMERGENCY BLOOD DONATION NETWORK • CHENNAI & ALL DISTRICTS
+    </div>
+
+  </div>
+
   <!-- Location Permission Dialog Modal on Entry -->
   <div class="modal-overlay" id="location-prompt-modal">
     <div class="glass-panel modal-content" style="max-width: 440px; text-align: center; padding: 2rem;">
@@ -31,49 +71,37 @@
 
   <!-- Top Navigation Header -->
   <header class="glass-nav">
-    <div class="brand">
+    <div class="brand" onclick="openHeroLanding()" style="cursor: pointer;" title="Back to Hero Motivation Screen">
       <div class="brand-icon">🩸</div>
       <div>LifePulse <span style="font-size: 0.75rem; color: var(--primary-red); font-weight: 600; display: block; margin-top: -4px;">BLOOD MATCHING & CAMPAIGNS</span></div>
     </div>
 
-    <!-- Role Switcher & Login Control -->
+    <!-- Capsule Menu Button (Matching Picture 2) -->
     <div class="nav-controls">
-      <div class="role-badge-selector">
-        <button class="role-btn active" onclick="switchRole('donor')" id="role-btn-donor">Donor View</button>
-        <button class="role-btn" onclick="switchRole('seeker')" id="role-btn-seeker">Seeker / Patient</button>
-        <button class="role-btn" onclick="switchRole('hospital')" id="role-btn-hospital">Hospital Bank</button>
-        <button class="role-btn" onclick="switchRole('admin')" id="role-btn-admin">Admin Control</button>
-      </div>
-
-      <button class="btn-primary" style="padding: 6px 14px; font-size: 0.82rem; width: auto; background: linear-gradient(135deg, #e63946, #991b1b); border: none; box-shadow: 0 0 12px var(--crimson-glow);" onclick="openLoginModal()" id="login-session-btn">
-        🔑 <span id="login-user-name">Login / Switch Account</span>
-      </button>
-
-      <button class="notif-btn" onclick="toggleNotifDrawer()" title="Simulated Notifications">
-        🔔
-        <span class="notif-badge" id="notif-count">0</span>
+      <button id="main-menu-toggle-btn" class="capsule-menu-btn" onclick="toggleNavDrawer()">
+        <span class="capsule-menu-icon">≡</span>
+        <span>Menu</span>
       </button>
     </div>
   </header>
 
-  <!-- Key Platform Analytics Banner (Active Campaigns & Donors Donated Blood) -->
-  <section class="stats-container stats-container-centered">
-    <div class="glass-panel stat-card-enhanced">
-      <div>
-        <div class="stat-lbl-title">📢 ACTIVE CAMPAIGNS</div>
-        <div class="stat-val-large" id="stat-active-campaigns">2</div>
-        <div class="stat-lbl-desc">Live community blood drives actively accepting donations</div>
-      </div>
+  <!-- Right Side Navigation Drawer Menu -->
+  <div id="nav-drawer-overlay" class="drawer-overlay" onclick="toggleNavDrawer()"></div>
+  
+  <div id="nav-drawer" class="nav-drawer">
+    <div class="drawer-header-minimal">
+      <button class="drawer-close-minimal" onclick="toggleNavDrawer()" title="Close Menu">✕</button>
     </div>
-    
-    <div class="glass-panel stat-card-enhanced">
-      <div>
-        <div class="stat-lbl-title">🩸 DONORS DONATED BLOOD USING THIS APP</div>
-        <div class="stat-val-large" id="stat-donated-blood">141 Donors</div>
-        <div class="stat-lbl-desc">Total verified blood donations & lives saved through LifePulse</div>
-      </div>
+
+    <div class="drawer-menu-list-minimal">
+      <div class="drawer-link" onclick="selectMenuItem('campaigns')">Active Campaigns</div>
+      <div class="drawer-link drawer-link-active" onclick="selectMenuItem('donor')">Blood Donator</div>
+      <div class="drawer-link" onclick="selectMenuItem('seeker')">Blood Seeker / Patient</div>
+      <div class="drawer-link" onclick="selectMenuItem('hospital')">Hospital Inventory</div>
+      <div class="drawer-link" onclick="selectMenuItem('admin')">Admin Control</div>
+      <div class="drawer-link" onclick="selectMenuItem('login')" id="drawer-login-text">Login & Account</div>
     </div>
-  </section>
+  </div>
 
   <!-- Main Centered Interactive Workspace (No Map) -->
   <main class="main-layout main-layout-centered">
@@ -81,130 +109,328 @@
     <!-- Central Action Panel & Campaign Management -->
     <section class="panel-container">
 
-      <!-- DONOR / CAMPAIGN MAIN PANEL -->
-      <div id="view-donor" class="glass-panel" style="padding: 1.75rem;">
-        
-        <!-- Recognized Location Detection Bar -->
-        <div class="location-detector-bar">
-          <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <span style="font-size: 1.2rem; color: var(--emerald-green);">🎯</span>
-            <div>
-              <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px;">RECOGNIZED LOCATION</div>
-              <div id="user-current-location-text" style="font-size: 0.88rem; font-weight: 700; color: #fff;">New York, NY (Auto-Detecting...)</div>
-            </div>
-          </div>
-          <button class="btn-location-detect" onclick="detectUserLocation()">
-            <span>📍</span> Detect GPS Location
-          </button>
-        </div>
-
-        <!-- Blood Donation Theme Motivation Banner & Floating Theme Stickers -->
-        <div id="motivation-banner" class="motivation-card motivation-card-centered">
+      <!-- DONOR MAIN PANEL: DONATE BLOOD AND SAVE LIFE (Image 2 Style) -->
+      <div id="view-donor" class="glass-panel hero-camp-panel" style="padding: 2.2rem;">
+        <div class="hero-camp-grid">
           
-          <!-- Blood Donation Theme Stickers Row -->
-          <div class="motivation-stickers-row">
-            <span class="theme-sticker pulse-sticker" title="Life Drop">🩸</span>
-            <span class="theme-sticker" title="Hospital & Health">🏥</span>
-            <span class="theme-sticker" title="Save Lives">❤️</span>
-            <span class="theme-sticker" title="Community Help">🤝</span>
-            <span class="theme-sticker" title="Emergency Blood Transfusion">💉</span>
-          </div>
-
-          <div style="display: flex; gap: 1rem; align-items: center; width: 100%;">
-            <div class="motivation-quote-icon">🩸</div>
-            <div class="motivation-quote-content">
-              <div class="motivation-tag">MOTIVATION FOR LIFE</div>
-              <p id="motivation-quote-text" class="motivation-quote-text">"Every drop of blood you donate is a gift of life to someone in need."</p>
-              <div class="motivation-author" id="motivation-author">— LifePulse Hero</div>
+          <!-- Left Column: Title & Information -->
+          <div class="hero-camp-info">
+            <div class="hero-camp-tag">L I F E P U L S E   D O N O R   N E T W O R K</div>
+            <h1 class="hero-camp-title">Donate Blood &<br><span style="color: var(--primary-red); font-weight: 300;">Save Life.</span></h1>
+            <p class="hero-camp-desc">
+              Register as a verified blood donor across Chennai and Tamil Nadu districts. 
+              Your voluntary registration allows critical patients, hospitals, and emergency seekers to quickly connect with compatible blood donors.
+            </p>
+            <div class="hero-camp-badges">
+              <span class="hero-badge">✨ 100% Free Registration</span>
+              <span class="hero-badge">🔒 Privacy Protected</span>
+              <span class="hero-badge">🩸 Live Donor Registry</span>
             </div>
-            <button class="motivation-refresh-btn" onclick="rotateMotivationQuote()" title="Change Motivational Quote">🔄</button>
           </div>
+
+          <!-- Right Column: Dark Donor Registration Form Card (Picture 2 Style) -->
+          <div class="hero-camp-form-card">
+            <form id="hero-donor-reg-form" onsubmit="handleHeroDonorRegisterSubmit(event)">
+              <h3 style="font-family: var(--font-heading); font-size: 1.15rem; color: #fff; margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>🩸</span> Donor Details Registration
+              </h3>
+
+              <div class="form-group" style="margin-bottom: 0.85rem;">
+                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Full Name</label>
+                <input type="text" id="hero-donor-name" class="form-input" placeholder="e.g. Karthik Raja" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0.85rem;">
+                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Mobile Number</label>
+                <input type="tel" id="hero-donor-phone" class="form-input" placeholder="e.g. +91 98401 12345" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Blood Group</label>
+                  <select id="hero-donor-blood-type" class="form-input" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff;">
+                    <option value="O+">O+ Positive</option>
+                    <option value="O-">O- Universal</option>
+                    <option value="A+">A+ Positive</option>
+                    <option value="A-">A- Negative</option>
+                    <option value="B+">B+ Positive</option>
+                    <option value="B-">B- Negative</option>
+                    <option value="AB+">AB+ Positive</option>
+                    <option value="AB-">AB- Negative</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">District / City</label>
+                  <input type="text" id="hero-donor-city" class="form-input" placeholder="e.g. Chennai" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                </div>
+              </div>
+
+              <div class="form-group autocomplete-container" style="margin-bottom: 1rem;">
+                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Specific Address / Hospital Location</label>
+                <input type="text" id="hero-donor-location" class="form-input" placeholder="Type area or district (e.g. T. Nagar, Chennai)..." required autocomplete="off" oninput="handleLocationTyping(this.value, 'hero-donor-suggestions-pop', 'hero-donor-location')" style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                <div id="hero-donor-suggestions-pop" class="location-suggestions-popup"></div>
+              </div>
+
+              <button type="submit" class="hero-camp-submit-btn" style="width: 100%; margin-top: 0.5rem;">
+                Register as Blood Donor
+              </button>
+            </form>
+          </div>
+
         </div>
 
-        <!-- Two Prominent Centered Action Buttons -->
-        <div class="campaign-btn-row campaign-btn-row-centered">
-          <button class="campaign-action-btn btn-active-campaign" id="btn-active-campaign" onclick="handleActiveCampaignClick()">
-            <span class="btn-icon">📢</span>
-            <span class="btn-text">Active Campaign Near Me</span>
-            <span class="btn-badge" id="active-campaign-count-badge">2</span>
-          </button>
-          <button class="campaign-action-btn btn-update-campaign" id="btn-update-campaign" onclick="openUpdateCampaignModal()">
-            <span class="btn-icon">✏️</span>
-            <span class="btn-text">Conduct / Update Campaign</span>
-          </button>
+        <!-- Ultra-Minimalist Metric Banner (Only in Donor Page below Registration Bar) -->
+        <section class="minimal-stats-banner" style="margin-top: 2rem;">
+          <div class="minimal-stat-item">
+            <div class="minimal-stat-num" id="stat-active-campaigns">2+</div>
+            <div class="minimal-stat-lbl">ACTIVE CAMPAIGNS NEAR YOU</div>
+          </div>
+
+          <div class="minimal-stat-divider"></div>
+
+          <div class="minimal-stat-item">
+            <div class="minimal-stat-num" id="stat-donated-blood">141+</div>
+            <div class="minimal-stat-lbl">DONORS DONATED BLOOD</div>
+          </div>
+
+          <div class="minimal-stat-divider"></div>
+
+          <div class="minimal-stat-item">
+            <div class="minimal-stat-num" id="stat-pints-collected">141+</div>
+            <div class="minimal-stat-lbl">PINTS OF BLOOD COLLECTED</div>
+          </div>
+
+          <div class="minimal-stat-divider"></div>
+
+          <div class="minimal-stat-item">
+            <div class="minimal-stat-num" id="stat-match-rate">99.8%</div>
+            <div class="minimal-stat-lbl">DONOR MATCH SUCCESS RATE</div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ACTIVE CAMPAIGNS VIEW PANEL (Matching Main Interface Split Hero Theme) -->
+      <div id="view-campaigns" class="glass-panel hero-camp-panel" style="padding: 2.2rem; display: none;">
+        <div class="hero-camp-grid">
+          
+          <!-- Left Column: Title & Tagline -->
+          <div class="hero-camp-info">
+            <div class="hero-camp-tag">L I F E P U L S E   C A M P A I G N   N E T W O R K</div>
+            <h1 class="hero-camp-title">Host & Update<br><span style="color: var(--primary-red); font-weight: 300;">Campaign Events.</span></h1>
+            <p class="hero-camp-desc">
+              Schedule an emergency blood donation drive in your district. Organizers, hospitals, and community leaders can register active campaign details to connect with donors across Tamil Nadu.
+            </p>
+            <div class="hero-camp-badges">
+              <span class="hero-badge">✨ Verified Campaign Drive</span>
+              <span class="hero-badge">🔒 Organizer Protected</span>
+              <span class="hero-badge">🩸 Live Campaign Registry</span>
+            </div>
+          </div>
+
+          <!-- Right Column: Dark Host & Update Campaign Form Card -->
+          <div class="hero-camp-form-card">
+            <form id="hero-campaign-form" onsubmit="handleHeroCampaignSubmit(event)">
+              <h3 style="font-family: var(--font-heading); font-size: 1.15rem; color: #fff; margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>📢</span> Register Campaign Details
+              </h3>
+
+              <div class="form-group" style="margin-bottom: 0.85rem;">
+                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Campaign Name / Title *</label>
+                <input type="text" id="hero-camp-title" class="form-input" placeholder="e.g. RGGGH Emergency Blood Drive" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0.85rem;">
+                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Who is Organizing / Conducting It *</label>
+                <input type="text" id="hero-camp-organizer" class="form-input" placeholder="e.g. Rajiv Gandhi Govt General Hospital" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+              </div>
+
+              <!-- Date Pickers Row (DD/MM/YYYY Format) -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Start Date *</label>
+                  <div style="position: relative;">
+                    <input type="text" id="hero-camp-start-date" class="form-input" placeholder="dd/mm/yyyy" maxlength="10" required oninput="formatDateInputMask(this)" style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff; padding-right: 2.2rem;" />
+                    <span style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.6; font-size: 0.9rem;">📅</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">End Date *</label>
+                  <div style="position: relative;">
+                    <input type="text" id="hero-camp-end-date" class="form-input" placeholder="dd/mm/yyyy" maxlength="10" required oninput="formatDateInputMask(this)" style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff; padding-right: 2.2rem;" />
+                    <span style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.6; font-size: 0.9rem;">📅</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Time of Campaign with AM & PM Row -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Start Time (AM/PM) *</label>
+                  <select id="hero-camp-start-time" class="form-input" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff;">
+                    <option value="08:00 AM">08:00 AM</option>
+                    <option value="09:00 AM" selected>09:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="11:00 AM">11:00 AM</option>
+                    <option value="12:00 PM">12:00 PM</option>
+                    <option value="01:00 PM">01:00 PM</option>
+                    <option value="02:00 PM">02:00 PM</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">End Time (AM/PM) *</label>
+                  <select id="hero-camp-end-time" class="form-input" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff;">
+                    <option value="03:00 PM">03:00 PM</option>
+                    <option value="04:00 PM">04:00 PM</option>
+                    <option value="05:00 PM" selected>05:00 PM</option>
+                    <option value="06:00 PM">06:00 PM</option>
+                    <option value="07:00 PM">07:00 PM</option>
+                    <option value="08:00 PM">08:00 PM</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Contact Phone & Location Row -->
+              <div class="form-group" style="margin-bottom: 0.85rem;">
+                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Organizer Contact Phone / Helpline *</label>
+                <input type="tel" id="hero-camp-phone" class="form-input" placeholder="e.g. +91 98401 12345 / 044-25305000" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+              </div>
+
+              <!-- Location & Target Units Row -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+                <div class="form-group autocomplete-container">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Tamil Nadu District / Venue *</label>
+                  <input type="text" id="hero-camp-location" class="form-input" placeholder="e.g. Chennai, T. Nagar" required autocomplete="off" oninput="handleLocationTyping(this.value, 'hero-camp-suggestions-pop', 'hero-camp-location')" style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                  <div id="hero-camp-suggestions-pop" class="location-suggestions-popup"></div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Target Units (Pints) *</label>
+                  <input type="number" id="hero-camp-target" class="form-input" value="100" min="10" max="1000" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                </div>
+              </div>
+
+              <button type="submit" class="hero-camp-submit-btn" style="width: 100%; margin-top: 0.5rem;">
+                Publish Campaign Drive
+              </button>
+            </form>
+          </div>
+
         </div>
 
-        <!-- Campaign Cards List Container -->
-        <div class="panel-header" style="margin-top: 1rem;">
-          <h3 class="panel-title" id="campaign-section-title"><span>📢</span> Active Campaign Near Me</h3>
-          <span style="font-size: 0.78rem; color: var(--emerald-green); font-weight: 600;" id="campaign-status-badge">Sorted by Proximity</span>
+        <!-- Live Active Campaign Cards Section -->
+        <div class="panel-header" style="margin-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem;">
+          <h3 class="panel-title" id="campaign-section-title"><span>📢</span> Live Active Campaign Drives</h3>
+          <span style="font-size: 0.78rem; color: var(--emerald-green); font-weight: 600;">Verified Network Drives</span>
         </div>
 
-        <div id="campaign-list-container">
+        <div id="active-campaigns-list-container">
           <div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem;">
-            Loading active campaigns near you...
+            Loading active campaigns...
           </div>
         </div>
 
       </div>
 
-      <!-- SEEKER / PATIENT VIEW PANEL -->
-      <div id="view-seeker" class="glass-panel" style="padding: 1.5rem; display: none;">
-        <div class="panel-header">
-          <h2 class="panel-title"><span>🚨</span> Create Urgent Blood Request</h2>
+      <!-- SEEKER / PATIENT VIEW PANEL (Picture 2 Split Hero Theme) -->
+      <div id="view-seeker" class="glass-panel hero-camp-panel" style="padding: 2.2rem; display: none;">
+        <div class="hero-camp-grid">
+          
+          <!-- Left Column: Title & Information -->
+          <div class="hero-camp-info">
+            <div class="hero-camp-tag">L I F E P U L S E   S E E K E R   N E T W O R K</div>
+            <h1 class="hero-camp-title">Request Blood &<br><span style="color: var(--primary-red); font-weight: 300;">Save A Life.</span></h1>
+            <p class="hero-camp-desc">
+              Create an urgent emergency blood request for patients or hospital admissions. Connected donors across Chennai & Tamil Nadu receive instant alerts to provide immediate blood matches.
+            </p>
+            <div class="hero-camp-badges">
+              <span class="hero-badge">✨ 100% Verified Requests</span>
+              <span class="hero-badge">🔒 HIPAA Compliant</span>
+              <span class="hero-badge">🚨 Instant Donor Alert</span>
+            </div>
+          </div>
+
+          <!-- Right Column: Dark Blood Request Form Card -->
+          <div class="hero-camp-form-card">
+            <form id="create-request-form" onsubmit="handleCreateRequest(event)">
+              <h3 style="font-family: var(--font-heading); font-size: 1.15rem; color: #fff; margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>🚨</span> Create Urgent Blood Request
+              </h3>
+
+              <div class="form-group" style="margin-bottom: 0.85rem;">
+                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Patient Name / Identifier *</label>
+                <input type="text" id="req-patient" class="form-input" placeholder="e.g. John Doe (ICU Room 4)" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0.85rem;">
+                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Patient / Attender Mobile Number *</label>
+                <input type="tel" id="req-phone" class="form-input" placeholder="e.g. +91 98401 12345" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+              </div>
+
+              <!-- Blood Type & Units Row -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Blood Type Needed *</label>
+                  <select id="req-bloodtype" class="form-input" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff;">
+                    <option value="O-">O- (Universal)</option>
+                    <option value="O+">O+ Positive</option>
+                    <option value="A+">A+ Positive</option>
+                    <option value="A-">A- Negative</option>
+                    <option value="B+">B+ Positive</option>
+                    <option value="B-">B- Negative</option>
+                    <option value="AB+">AB+ Positive</option>
+                    <option value="AB-">AB- Negative</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Units Required (Pints) *</label>
+                  <input type="number" id="req-units" class="form-input" value="2" min="1" max="10" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                </div>
+              </div>
+
+              <!-- Urgency & District Row -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Urgency Level *</label>
+                  <select id="req-urgency" class="form-input" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff;">
+                    <option value="CRITICAL">🔴 CRITICAL (Immediate)</option>
+                    <option value="HIGH" selected>🟠 HIGH (Within 6 Hrs)</option>
+                    <option value="MEDIUM">🟡 MEDIUM (24 Hrs)</option>
+                    <option value="LOW">🟢 LOW (Scheduled)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">District / City *</label>
+                  <input type="text" id="req-city" class="form-input" value="Chennai" required style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                </div>
+              </div>
+
+              <!-- Specific Hospital Location / Address -->
+              <div class="form-group autocomplete-container" style="margin-bottom: 1rem;">
+                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Hospital Name & Location Address *</label>
+                <input type="text" id="req-location" class="form-input" placeholder="Type hospital or location (e.g. Rajiv Gandhi Hospital, Park Town, Chennai)..." required autocomplete="off" oninput="handleLocationTyping(this.value, 'req-suggestions-pop', 'req-location')" style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                <div id="req-suggestions-pop" class="location-suggestions-popup"></div>
+              </div>
+
+              <button type="submit" class="hero-camp-submit-btn" style="width: 100%; margin-top: 0.5rem;">
+                Dispatch Request & Match Donors
+              </button>
+            </form>
+          </div>
+
         </div>
 
-        <form id="create-request-form" onsubmit="handleCreateRequest(event)">
-          <div class="form-group">
-            <label class="form-label">Patient Name / Identifier</label>
-            <input type="text" id="req-patient" class="form-input" placeholder="e.g. John Doe (ICU Room 4)" required />
-          </div>
+        <!-- Live Registered Donors Directory for Seekers/Patients -->
+        <div class="panel-header" style="margin-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem;">
+          <h3 class="panel-title"><span>🩸</span> Registered Verified Donors Directory</h3>
+          <span style="font-size: 0.78rem; color: var(--emerald-green); font-weight: 600;">Live Network Donors</span>
+        </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
-            <div class="form-group">
-              <label class="form-label">Blood Type Needed</label>
-              <select id="req-bloodtype" class="form-select" required>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-" selected>O- (Universal)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Units Required (Pints)</label>
-              <input type="number" id="req-units" class="form-input" value="2" min="1" max="10" required />
-            </div>
+        <div id="registered-donors-list-container">
+          <div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem;">
+            Loading registered donors...
           </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
-            <div class="form-group">
-              <label class="form-label">Urgency Level</label>
-              <select id="req-urgency" class="form-select">
-                <option value="CRITICAL">🔴 CRITICAL (Immediate)</option>
-                <option value="HIGH" selected>🟠 HIGH (Within 6 Hrs)</option>
-                <option value="MEDIUM">🟡 MEDIUM (24 Hrs)</option>
-                <option value="LOW">🟢 LOW (Scheduled)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Hospital / City</label>
-              <input type="text" id="req-city" class="form-input" value="New York" required />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Clinical Notes / Special Requirements</label>
-            <input type="text" id="req-notes" class="form-input" placeholder="e.g. Emergency surgery at Mount Sinai" />
-          </div>
-
-          <button type="submit" class="btn-primary">
-            <span>⚡</span> Dispatch Request & Match Donors
-          </button>
-        </form>
+        </div>
       </div>
 
       <!-- HOSPITAL VIEW PANEL -->
@@ -263,50 +489,55 @@
 
   </main>
 
-  <!-- Login / Switch Account Modal -->
+  <!-- Login / Switch Account Modal (Matching Picture 2 Design & App Theme) -->
   <div class="modal-overlay" id="login-modal">
-    <div class="glass-panel modal-content" style="max-width: 480px;">
-      <div class="modal-header">
-        <h3 style="font-family: var(--font-heading); font-size: 1.25rem;">🔑 User Login / Account Switch</h3>
-        <button class="close-btn" onclick="closeLoginModal()">&times;</button>
+    <div class="glass-panel modal-content login-modal-card">
+      <div class="modal-header-minimal">
+        <button class="close-btn-minimal" onclick="closeLoginModal()">&times;</button>
       </div>
 
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-        Select an account to log in. Every login will refresh the blood donation motivational theme in the app!
-      </p>
+      <div class="login-header-area">
+        <h2 class="login-title">Welcome back</h2>
+        <p class="login-subtitle">Please Enter your Account details</p>
+      </div>
 
       <form id="login-form" onsubmit="handleLoginSubmit(event)">
-        <div class="form-group">
-          <label class="form-label">Select Demo User / Account</label>
-          <select id="login-user-select" class="form-select" onchange="onLoginUserSelectChange(this.value)">
-            <option value="10" selected>Alexander Wright (O- Donor)</option>
-            <option value="11">Elena Rostova (A+ Donor)</option>
-            <option value="12">Marcus Vance (O+ Donor)</option>
-            <option value="2">Mount Sinai Hospital (Hospital Bank)</option>
-            <option value="3">Bellevue Hospital Center (Hospital Bank)</option>
-            <option value="1">System Administrator (Admin)</option>
-            <option value="custom">+ Create New / Custom User</option>
-          </select>
+        <div class="form-group" style="margin-bottom: 1.1rem;">
+          <label class="form-label-minimal">Email</label>
+          <input type="email" id="login-email-input" class="form-input-pill" placeholder="johndoe@gmail.com" />
         </div>
 
-        <div id="custom-user-fields" style="display: none;">
-          <div class="form-group">
-            <label class="form-label">User Full Name</label>
-            <input type="text" id="login-custom-name" class="form-input" placeholder="e.g. Dr. Sarah Connor" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Role</label>
-            <select id="login-custom-role" class="form-select">
-              <option value="donor">Donor</option>
-              <option value="hospital" selected>Hospital / Organizer</option>
-              <option value="seeker">Seeker / Patient</option>
-            </select>
-          </div>
+        <div class="form-group" style="margin-bottom: 1.1rem;">
+          <label class="form-label-minimal">Password</label>
+          <input type="password" id="login-pass-input" class="form-input-pill" placeholder="••••••••" />
         </div>
 
-        <button type="submit" class="btn-primary" style="margin-top: 1rem; background: linear-gradient(135deg, #10b981, #059669);">
-          <span>🔓</span> Log In & Refresh Motivation
+        <div class="login-controls-row">
+          <label class="keep-logged-lbl">
+            <input type="checkbox" checked /> Keep me logged in
+          </label>
+          <a href="#" class="forgot-pass-link" onclick="alert('Password reset link sent to your registered email.')">Forgot Password</a>
+        </div>
+
+        <button type="submit" class="login-signin-btn">
+          Sign in
         </button>
+
+        <button type="button" class="guest-account-btn" onclick="handleGuestLogin()">
+          👤 Continue as Guest Account
+        </button>
+
+        <div class="social-sso-row">
+          <button type="button" class="social-btn" title="Sign in with Google" onclick="alert('Google SSO connected.')">
+            <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15s.7 5.3 1.9 7.7l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"/></svg>
+          </button>
+          <button type="button" class="social-btn" title="Sign in with GitHub" onclick="alert('GitHub SSO connected.')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#000"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          </button>
+          <button type="button" class="social-btn" title="Sign in with Facebook" onclick="alert('Facebook SSO connected.')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </button>
+        </div>
       </form>
     </div>
   </div>

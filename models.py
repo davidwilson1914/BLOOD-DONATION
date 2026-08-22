@@ -207,8 +207,8 @@ class CampaignCreate(BaseModel):
     title: str
     organizer_name: str
     location: Location
-    start_date: date
-    end_date: date
+    start_date: str
+    end_date: str
     blood_types_needed: List[BloodType]
     target_units: int = 50
     units_collected: int = 0
