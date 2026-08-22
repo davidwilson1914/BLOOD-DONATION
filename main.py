@@ -2,14 +2,13 @@
 LifePulse Blood Donor Matching Platform - Main FastAPI Application.
 """
 
+from logging import config
 from datetime import datetime, timedelta
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Query, Depends, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
-
-import config
 from models import (
     User, UserRole, DonorProfile, DonorRegisterCreate, BloodRequest, BloodRequestCreate,
     MatchResponse, MatchResponseStatus, Notification, AuditLog,
@@ -24,10 +23,11 @@ from notifications import notification_service
 from hospital_inventory import inventory_manager
 
 app = FastAPI(
-    title=config.APP_NAME,
-    description="Full-stack Python Blood Donor Matching Platform API with Geospatial Indexing, Privacy Controls & HIPAA Audit Logs.",
+    title="LifePulse",
+    description="Full-stack Python Blood Donor Matching Platform",
     version="1.0.0"
 )
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/")
 def serve_frontend():

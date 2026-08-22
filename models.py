@@ -223,3 +223,4 @@ class Campaign(CampaignCreate):
     created_at: datetime
     participants_count: int = 0
 
+
