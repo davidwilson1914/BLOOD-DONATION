@@ -18,6 +18,8 @@ from models import (
 from database import db
 from matching_engine import find_matching_donors, haversine_distance, COMPATIBILITY_MATRIX
 from privacy_security import privacy_manager
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from notifications import notification_service
 from hospital_inventory import inventory_manager
 
@@ -26,9 +28,10 @@ app = FastAPI(
     description="Full-stack Python Blood Donor Matching Platform API with Geospatial Indexing, Privacy Controls & HIPAA Audit Logs.",
     version="1.0.0"
 )
+app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/")
-def read_root():
-    return {"message": "Blood Donor Matching Platform API is running!"}
+def serve_frontend():
+    return FileResponse("static/index.html")
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
