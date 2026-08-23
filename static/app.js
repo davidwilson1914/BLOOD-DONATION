@@ -136,9 +136,9 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
+  const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Math.round(R * c * 10) / 10;
@@ -429,7 +429,7 @@ async function handleHeroCampaignSubmit(event) {
     }
 
     document.getElementById('hero-campaign-form').reset();
-    
+
     // Real-Time Alert & Broadcast Notification
     alert(`🎉 CAMPAIGN PUBLISHED & BROADCAST NOTIFICATION DISPATCHED!\n\n📢 Campaign: "${title}"\n🏥 Conducted by: ${organizer}\n📞 Contact Phone: ${phone}\n📍 Location: ${location}\n⏰ Operating Window: ${startFormatted} to ${endFormatted}\n\n📲 Push & SMS Notification alerts have been dispatched live to network donors across Tamil Nadu!`);
 
@@ -460,7 +460,7 @@ async function loadAnalytics() {
   try {
     const res = await fetch('/api/analytics');
     const data = await res.json();
-    
+
     const campElem = document.getElementById('stat-active-campaigns');
     if (campElem) {
       campElem.innerText = `${data.active_campaigns || 2}+`;
@@ -518,16 +518,16 @@ function renderRegisteredDonors() {
   container.innerHTML = `
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
       ${activeDonors.map(donor => {
-        const bloodType = donor.blood_type || donor.blood_type_needed || 'O+';
-        const name = donor.user_name || donor.name || 'Anonymous Donor';
-        const phone = donor.phone_masked || donor.contact_phone || '+91 98401 12345';
-        const city = donor.location ? (donor.location.city || donor.location.address) : 'Chennai, Tamil Nadu';
-        const address = donor.location ? donor.location.address : city;
-        const encodedAddr = encodeURIComponent(address);
-        const encodedName = encodeURIComponent(name);
-        const isNew = donor.is_new === true;
+    const bloodType = donor.blood_type || donor.blood_type_needed || 'O+';
+    const name = donor.user_name || donor.name || 'Anonymous Donor';
+    const phone = donor.phone_masked || donor.contact_phone || '+91 98401 12345';
+    const city = donor.location ? (donor.location.city || donor.location.address) : 'Chennai, Tamil Nadu';
+    const address = donor.location ? donor.location.address : city;
+    const encodedAddr = encodeURIComponent(address);
+    const encodedName = encodeURIComponent(name);
+    const isNew = donor.is_new === true;
 
-        return `
+    return `
           <div style="background: ${isNew ? 'rgba(230,57,70,0.08)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isNew ? 'rgba(230,57,70,0.5)' : 'rgba(255,255,255,0.08)'}; border-left: 4px solid ${isNew ? 'var(--primary-red)' : 'var(--emerald-green)'}; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
@@ -549,7 +549,7 @@ function renderRegisteredDonors() {
             </div>
           </div>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 }
@@ -701,11 +701,11 @@ async function loadCampaigns() {
   try {
     const res = await fetch('/api/campaigns');
     activeCampaigns = await res.json();
-    
+
     // Update badges
     const badge = document.getElementById('active-campaign-count-badge');
     if (badge) badge.innerText = activeCampaigns.length;
-    
+
     renderCampaignCards();
   } catch (err) {
     console.error('Error loading campaigns:', err);
@@ -827,29 +827,29 @@ function renderCampaignCards() {
   const cardsHtml = `
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; margin-top: 1rem;">
       ${validActiveCampaigns.map(camp => {
-        const statusInfo = getCampaignStatus(camp);
-        const percent = Math.min(100, Math.round(((camp.units_collected || 0) / (camp.target_units || 1)) * 100));
-        const locStr = camp.location ? (camp.location.address || camp.location.city) : 'Chennai, Tamil Nadu';
-        const phoneStr = camp.contact_phone || '+91 98401 12345';
-        const formattedStart = formatToDDMMYYYY(camp.start_date);
-        const formattedEnd = formatToDDMMYYYY(camp.end_date);
-        const encodedAddr = encodeURIComponent(locStr);
-        const encodedTitle = encodeURIComponent(camp.title);
-        const lat = camp.location ? camp.location.latitude : 13.0827;
-        const lon = camp.location ? camp.location.longitude : 80.2707;
+    const statusInfo = getCampaignStatus(camp);
+    const percent = Math.min(100, Math.round(((camp.units_collected || 0) / (camp.target_units || 1)) * 100));
+    const locStr = camp.location ? (camp.location.address || camp.location.city) : 'Chennai, Tamil Nadu';
+    const phoneStr = camp.contact_phone || '+91 98401 12345';
+    const formattedStart = formatToDDMMYYYY(camp.start_date);
+    const formattedEnd = formatToDDMMYYYY(camp.end_date);
+    const encodedAddr = encodeURIComponent(locStr);
+    const encodedTitle = encodeURIComponent(camp.title);
+    const lat = camp.location ? camp.location.latitude : 13.0827;
+    const lon = camp.location ? camp.location.longitude : 80.2707;
 
-        const isUpcoming = statusInfo.isUpcoming;
-        const statusBadgeHtml = isUpcoming
-          ? `<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; font-weight: 700; padding: 2px 8px; border-radius: 10px;">🟡 UPCOMING</span>`
-          : `<span class="badge badge-eligible" style="background: rgba(16, 185, 129, 0.2); color: var(--emerald-green); font-weight: 700; padding: 2px 8px; border-radius: 10px;">🟢 LIVE NOW</span>`;
+    const isUpcoming = statusInfo.isUpcoming;
+    const statusBadgeHtml = isUpcoming
+      ? `<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; font-weight: 700; padding: 2px 8px; border-radius: 10px;">🟡 UPCOMING</span>`
+      : `<span class="badge badge-eligible" style="background: rgba(16, 185, 129, 0.2); color: var(--emerald-green); font-weight: 700; padding: 2px 8px; border-radius: 10px;">🟢 LIVE NOW</span>`;
 
-        const statusTagHtml = isUpcoming
-          ? `<span style="font-size:0.75rem; font-weight:800; color:#f59e0b; text-transform: uppercase;">📅 UPCOMING CAMPAIGN DRIVE</span>`
-          : `<span style="font-size:0.75rem; font-weight:800; color:var(--amber-orange); text-transform: uppercase;">⚡ LIVE CAMPAIGN DRIVE</span>`;
+    const statusTagHtml = isUpcoming
+      ? `<span style="font-size:0.75rem; font-weight:800; color:#f59e0b; text-transform: uppercase;">📅 UPCOMING CAMPAIGN DRIVE</span>`
+      : `<span style="font-size:0.75rem; font-weight:800; color:var(--amber-orange); text-transform: uppercase;">⚡ LIVE CAMPAIGN DRIVE</span>`;
 
-        const borderColor = isUpcoming ? '#f59e0b' : 'var(--primary-red)';
+    const borderColor = isUpcoming ? '#f59e0b' : 'var(--primary-red)';
 
-        return `
+    return `
           <div class="campaign-card" style="border-left: 4px solid ${borderColor}; background: rgba(255,255,255,0.03); padding: 1.35rem; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between;">
             <div>
               <div class="card-header-row" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
@@ -898,7 +898,7 @@ function renderCampaignCards() {
             </div>
           </div>
         `;
-      }).join('')}
+  }).join('')}
     </div>
   `;
 
@@ -912,7 +912,7 @@ function openInGoogleMaps(lat, lon, encodedAddress, encodedTitle) {
   const title = decodeURIComponent(encodedTitle);
 
   const confirmOpen = confirm(`🗺️ GOOGLE MAPS NAVIGATION\n\nWould you like to open turn-by-turn directions to "${title}" at ${address} in Google Maps?`);
-  
+
   if (confirmOpen) {
     const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || lat + ',' + lon)}`;
     window.open(gmapsUrl, '_blank');
@@ -1190,4 +1190,11 @@ function toggleNotifDrawer() {
   if (modal.classList.contains('active')) {
     loadNotifications();
   }
+}
+function handleGoogleLogin() {
+  // 1. லாகின் வெற்றியை பிரவுசரில் சேமிக்க
+  localStorage.setItem("isLoggedIn", "true");
+
+  // 2. லாகின் ஆனவுடன் ஹோம் பேஜூக்கு (index.html) செல்ல
+  window.location.href = "index.html";
 }
