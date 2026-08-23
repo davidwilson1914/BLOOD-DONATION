@@ -328,7 +328,7 @@ function completeLogin(userName, email, avatarUrl, provider) {
   currentUserProfile = { userName: currentUserName, email, avatarUrl, provider };
 
   // Store session
-  try { sessionStorage.setItem('lp_user', JSON.stringify(currentUserProfile)); } catch (e) {}
+  try { sessionStorage.setItem('lp_user', JSON.stringify(currentUserProfile)); } catch (e) { }
 
   // Update nav avatar
   updateNavProfile(currentUserName, email, avatarUrl, provider);
