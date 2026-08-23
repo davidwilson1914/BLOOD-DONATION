@@ -7,25 +7,25 @@
   --bg-card-hover: rgba(30, 41, 64, 0.85);
   --border-color: rgba(255, 255, 255, 0.08);
   --border-accent: rgba(230, 57, 70, 0.3);
-  
+
   --primary-red: #e63946;
   --primary-red-hover: #d62828;
   --crimson-glow: rgba(230, 57, 70, 0.35);
-  
+
   --emerald-green: #10b981;
   --emerald-glow: rgba(16, 185, 129, 0.25);
-  
+
   --cobalt-blue: #3b82f6;
   --amber-orange: #f59e0b;
-  
+
   --text-main: #f3f4f6;
   --text-muted: #9ca3af;
   --text-dim: #6b7280;
-  
+
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
-  
+
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
 }
@@ -278,7 +278,9 @@ header {
   margin-bottom: 0.4rem;
 }
 
-.form-input, .form-select, .form-textarea {
+.form-input,
+.form-select,
+.form-textarea {
   width: 100%;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--border-color);
@@ -290,7 +292,9 @@ header {
   transition: border-color 0.2s;
 }
 
-.form-input:focus, .form-select:focus, .form-textarea:focus {
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
   outline: none;
   border-color: var(--primary-red);
   box-shadow: 0 0 8px var(--crimson-glow);
@@ -361,9 +365,20 @@ header {
   border-radius: 50%;
 }
 
-.legend-dot.red { background: var(--primary-red); box-shadow: 0 0 8px var(--primary-red); }
-.legend-dot.green { background: var(--emerald-green); box-shadow: 0 0 8px var(--emerald-green); }
-.legend-dot.blue { background: var(--cobalt-blue); box-shadow: 0 0 8px var(--cobalt-blue); }
+.legend-dot.red {
+  background: var(--primary-red);
+  box-shadow: 0 0 8px var(--primary-red);
+}
+
+.legend-dot.green {
+  background: var(--emerald-green);
+  box-shadow: 0 0 8px var(--emerald-green);
+}
+
+.legend-dot.blue {
+  background: var(--cobalt-blue);
+  box-shadow: 0 0 8px var(--cobalt-blue);
+}
 
 /* List Cards */
 .card-item {
@@ -395,17 +410,50 @@ header {
 
 }
 
-.badge-blood { background: var(--primary-red); color: #fff; }
-.badge-critical { background: #dc2626; color: #fff; animation: pulse 1.5s infinite; }
-.badge-high { background: #ea580c; color: #fff; }
-.badge-medium { background: #d97706; color: #fff; }
-.badge-eligible { background: rgba(16, 185, 129, 0.2); color: var(--emerald-green); border: 1px solid var(--emerald-green); }
-.badge-accepted { background: rgba(16, 185, 129, 0.3); color: #34d399; }
+.badge-blood {
+  background: var(--primary-red);
+  color: #fff;
+}
+
+.badge-critical {
+  background: #dc2626;
+  color: #fff;
+  animation: pulse 1.5s infinite;
+}
+
+.badge-high {
+  background: #ea580c;
+  color: #fff;
+}
+
+.badge-medium {
+  background: #d97706;
+  color: #fff;
+}
+
+.badge-eligible {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--emerald-green);
+  border: 1px solid var(--emerald-green);
+}
+
+.badge-accepted {
+  background: rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
 }
 
 /* Modals & Drawers */
@@ -459,7 +507,8 @@ header {
   margin-top: 0.5rem;
 }
 
-.inv-table th, .inv-table td {
+.inv-table th,
+.inv-table td {
   padding: 0.6rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
@@ -500,8 +549,15 @@ header {
 }
 
 @keyframes pulse-glow {
-  0% { transform: scale(0.9); opacity: 0.5; }
-  100% { transform: scale(1.1); opacity: 0.9; }
+  0% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
 }
 
 .motivation-quote-icon {
@@ -519,8 +575,13 @@ header {
 }
 
 @keyframes float-icon {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-4px); }
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(-4px);
+  }
 }
 
 .motivation-quote-content {
@@ -614,8 +675,14 @@ header {
 }
 
 @keyframes pulse-sticker {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.15); box-shadow: 0 0 20px rgba(230, 57, 70, 0.8); }
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.15);
+    box-shadow: 0 0 20px rgba(230, 57, 70, 0.8);
+  }
 }
 
 /* Google Maps Integration Button */
@@ -678,7 +745,8 @@ header {
 .campaign-action-btn {
   position: relative;
   padding: 1.5rem 1rem;
-  border-radius: 14px; /* Modern Square Shape */
+  border-radius: 14px;
+  /* Modern Square Shape */
   border: 1px solid rgba(255, 255, 255, 0.2);
   font-family: var(--font-heading);
   font-weight: 800;
@@ -720,15 +788,8 @@ header {
 .btn-update-campaign:hover {
   transform: translateY(-4px) scale(1.03);
   box-shadow: 0 12px 30px rgba(59, 130, 246, 0.75);
-}
   color: #ffffff;
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.btn-update-campaign:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.65);
 }
 
 .btn-update-campaign:active {
@@ -996,6 +1057,7 @@ header {
     gap: 1.5rem;
     padding: 1.8rem 1rem;
   }
+
   .minimal-stat-divider {
     width: 60%;
     height: 1px;
