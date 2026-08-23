@@ -88,7 +88,11 @@ function selectMenuItem(itemKey) {
   } else if (itemKey === 'admin') {
     switchRole('admin');
   } else if (itemKey === 'login') {
-    openLoginModal();
+    if (currentUserProfile && currentUserProfile.userName && currentUserProfile.userName !== 'Guest') {
+      openProfileModal();
+    } else {
+      openLoginModal();
+    }
   }
 }
 
@@ -219,31 +223,67 @@ function updateNavProfile(userName, email, avatarUrl, provider) {
   const avatarImg = document.getElementById('nav-avatar-img');
   const userLabel = document.getElementById('nav-user-label');
 
-  if (!profileBtn) return;
-  profileBtn.style.display = 'flex';
+  if (profileBtn) profileBtn.style.display = 'flex';
 
   if (avatarUrl) {
-    avatarImg.src = avatarUrl;
-    avatarImg.style.display = 'block';
-    avatarText.style.display = 'none';
+    if (avatarImg) { avatarImg.src = avatarUrl; avatarImg.style.display = 'block'; }
+    if (avatarText) avatarText.style.display = 'none';
   } else {
-    avatarText.innerText = userName.charAt(0).toUpperCase();
-    avatarImg.style.display = 'none';
-    avatarText.style.display = 'block';
+    if (avatarText) { avatarText.innerText = userName.charAt(0).toUpperCase(); avatarText.style.display = 'block'; }
+    if (avatarImg) avatarImg.style.display = 'none';
   }
-  userLabel.innerText = userName.split(' ')[0];
+  if (userLabel) userLabel.innerText = userName.split(' ')[0];
+
+  // Update Drawer menu link from 'Login & Account' to '👤 Profile (Name)'
+  const drawerLoginText = document.getElementById('drawer-login-text');
+  if (drawerLoginText) {
+    drawerLoginText.innerHTML = `👤 Profile (${userName.split(' ')[0]})`;
+    drawerLoginText.style.color = 'var(--primary-red)';
+    drawerLoginText.style.fontWeight = '700';
+  }
+
+  // Pre-fill Donor form name if empty
+  const donorNameInput = document.getElementById('donor-name');
+  if (donorNameInput && !donorNameInput.value) {
+    donorNameInput.value = userName;
+  }
 }
 
 // ═══════════════════════════════════════════
-// PROFILE MODAL
+// PROFILE MODAL (Shows full details of logged-in user)
 // ═══════════════════════════════════════════
 let currentUserProfile = {};
 
 function openProfileModal() {
   const p = currentUserProfile;
-  document.getElementById('profile-display-name').innerText = p.userName || 'User';
-  document.getElementById('profile-display-email').innerText = p.email || '';
-  document.getElementById('profile-provider-badge').innerText = `Signed in via ${p.provider || 'LifePulse'}`;
+  const displayName = p.userName || 'User';
+  const email = p.email || (p.userName ? `${p.userName.toLowerCase().replace(/\s+/g, '')}@gmail.com` : 'user@lifepulse.org');
+  const provider = p.provider || 'Google';
+
+  const nameElem = document.getElementById('profile-display-name');
+  if (nameElem) nameElem.innerText = displayName;
+
+  const emailElem = document.getElementById('profile-display-email');
+  if (emailElem) emailElem.innerText = email;
+
+  const badgeElem = document.getElementById('profile-provider-badge');
+  if (badgeElem) {
+    const icon = provider === 'Google' ? '🟢' : provider === 'Facebook' ? '🔵' : '🔴';
+    badgeElem.innerHTML = `${icon} ${provider} Account`;
+  }
+
+  const idElem = document.getElementById('profile-account-id');
+  if (idElem) idElem.innerText = `#LP-${currentUserId || 1049}`;
+
+  const methodElem = document.getElementById('profile-login-method');
+  if (methodElem) methodElem.innerText = `${provider} Sign-In`;
+
+  const cityElem = document.getElementById('profile-user-city');
+  if (cityElem) {
+    cityElem.innerText = userLocation && userLocation.name
+      ? userLocation.name.replace('(Auto-Detected)', '').replace('(Detected)', '').replace('(Location Off - General View)', '').trim() || 'Chennai, TN'
+      : 'Chennai, TN';
+  }
 
   const photo = document.getElementById('profile-avatar-photo');
   const letter = document.getElementById('profile-avatar-letter');
@@ -252,7 +292,7 @@ function openProfileModal() {
     photo.style.display = 'block';
     letter.style.display = 'none';
   } else {
-    letter.innerText = (p.userName || 'U').charAt(0).toUpperCase();
+    letter.innerText = displayName.charAt(0).toUpperCase();
     photo.style.display = 'none';
     letter.style.display = 'block';
   }
@@ -265,11 +305,20 @@ function closeProfileModal() {
 
 function handleLogout() {
   sessionStorage.removeItem('lp_user');
+  localStorage.removeItem('lp_user');
   currentUserProfile = {};
   currentUserName = 'Guest';
 
   const profileBtn = document.getElementById('nav-profile-btn');
   if (profileBtn) profileBtn.style.display = 'none';
+
+  // Reset Drawer menu link back to 'Login & Account'
+  const drawerLoginText = document.getElementById('drawer-login-text');
+  if (drawerLoginText) {
+    drawerLoginText.innerHTML = 'Login & Account';
+    drawerLoginText.style.color = '';
+    drawerLoginText.style.fontWeight = '';
+  }
 
   closeProfileModal();
   document.getElementById('login-modal').classList.add('active');
