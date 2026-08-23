@@ -211,28 +211,132 @@ function closeLoginModal() {
 }
 
 // ═══════════════════════════════════════════
+// NAV PROFILE UPDATE
+// ═══════════════════════════════════════════
+function updateNavProfile(userName, email, avatarUrl, provider) {
+  const profileBtn = document.getElementById('nav-profile-btn');
+  const avatarText = document.getElementById('nav-avatar-text');
+  const avatarImg = document.getElementById('nav-avatar-img');
+  const userLabel = document.getElementById('nav-user-label');
+
+  if (!profileBtn) return;
+  profileBtn.style.display = 'flex';
+
+  if (avatarUrl) {
+    avatarImg.src = avatarUrl;
+    avatarImg.style.display = 'block';
+    avatarText.style.display = 'none';
+  } else {
+    avatarText.innerText = userName.charAt(0).toUpperCase();
+    avatarImg.style.display = 'none';
+    avatarText.style.display = 'block';
+  }
+  userLabel.innerText = userName.split(' ')[0];
+}
+
+// ═══════════════════════════════════════════
+// PROFILE MODAL
+// ═══════════════════════════════════════════
+let currentUserProfile = {};
+
+function openProfileModal() {
+  const p = currentUserProfile;
+  document.getElementById('profile-display-name').innerText = p.userName || 'User';
+  document.getElementById('profile-display-email').innerText = p.email || '';
+  document.getElementById('profile-provider-badge').innerText = `Signed in via ${p.provider || 'LifePulse'}`;
+
+  const photo = document.getElementById('profile-avatar-photo');
+  const letter = document.getElementById('profile-avatar-letter');
+  if (p.avatarUrl) {
+    photo.src = p.avatarUrl;
+    photo.style.display = 'block';
+    letter.style.display = 'none';
+  } else {
+    letter.innerText = (p.userName || 'U').charAt(0).toUpperCase();
+    photo.style.display = 'none';
+    letter.style.display = 'block';
+  }
+  document.getElementById('profile-modal').classList.add('active');
+}
+
+function closeProfileModal() {
+  document.getElementById('profile-modal').classList.remove('active');
+}
+
+function handleLogout() {
+  sessionStorage.removeItem('lp_user');
+  currentUserProfile = {};
+  currentUserName = 'Guest';
+
+  const profileBtn = document.getElementById('nav-profile-btn');
+  if (profileBtn) profileBtn.style.display = 'none';
+
+  closeProfileModal();
+  document.getElementById('login-modal').classList.add('active');
+
+  showLoginToast('Signed out', 'Session ended', null);
+}
+
+// ═══════════════════════════════════════════
+// GOOGLE ACCOUNT PICKER MODAL
+// ═══════════════════════════════════════════
+const DEMO_GOOGLE_ACCOUNTS = [
+  { name: 'David Wilson', email: 'davidwilson1914@gmail.com', initials: 'D', color: '#4285F4' },
+  { name: 'Add another account', email: '', initials: '+', color: '#5f6368', isAdd: true }
+];
+
+function openGooglePicker() {
+  const list = document.getElementById('google-accounts-list');
+  if (!list) return;
+
+  list.innerHTML = DEMO_GOOGLE_ACCOUNTS.map((acc, i) => `
+    <div onclick="${acc.isAdd ? 'closeGooglePicker()' : `selectGoogleAccount(${i})`}"
+      style="display:flex; align-items:center; gap:12px; padding:12px 24px; cursor:pointer; transition:background 0.15s;"
+      onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+      <div style="width:40px;height:40px;border-radius:50%;background:${acc.color};display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0;">
+        ${acc.initials}
+      </div>
+      <div>
+        <div style="font-size:14px;color:#202124;font-weight:500;">${acc.name}</div>
+        ${acc.email ? `<div style="font-size:12px;color:#5f6368;">${acc.email}</div>` : ''}
+      </div>
+      ${!acc.isAdd ? '<div style="margin-left:auto;font-size:18px;color:#1a73e8;">✓</div>' : ''}
+    </div>`).join('');
+
+  document.getElementById('google-account-picker').classList.add('active');
+  closeLoginModal();
+}
+
+function closeGooglePicker() {
+  document.getElementById('google-account-picker').classList.remove('active');
+}
+
+function selectGoogleAccount(index) {
+  const acc = DEMO_GOOGLE_ACCOUNTS[index];
+  if (!acc || acc.isAdd) return;
+  closeGooglePicker();
+  completeLogin(acc.name, acc.email, null, 'Google');
+}
+
+// ═══════════════════════════════════════════
 // AUTH: Central function to complete any login
 // ═══════════════════════════════════════════
 function completeLogin(userName, email, avatarUrl, provider) {
   currentUserId = Math.floor(Math.random() * 900) + 100;
-  currentUserName = userName || email.split('@')[0] || 'User';
+  currentUserName = userName || (email ? email.split('@')[0] : 'User');
 
-  // Update UI name display
-  const userElem = document.getElementById('login-user-name');
-  if (userElem) userElem.innerText = currentUserName;
+  currentUserProfile = { userName: currentUserName, email, avatarUrl, provider };
 
   // Store session
-  try {
-    sessionStorage.setItem('lp_user', JSON.stringify({ userName: currentUserName, email, avatarUrl, provider }));
-  } catch (e) {}
+  try { sessionStorage.setItem('lp_user', JSON.stringify(currentUserProfile)); } catch (e) {}
+
+  // Update nav avatar
+  updateNavProfile(currentUserName, email, avatarUrl, provider);
 
   closeLoginModal();
+  closeGooglePicker();
   rotateMotivationQuote();
-
-  // Redirect to home / donor page
   switchRole('donor');
-
-  // Show a premium welcome toast (no plain alert)
   showLoginToast(currentUserName, provider, avatarUrl);
 }
 
@@ -294,40 +398,8 @@ function handleLoginSubmit(e) {
 // GOOGLE OAUTH LOGIN
 // ═══════════════════════════════════════════
 function handleGoogleLogin() {
-  // Use Google Identity Services popup flow
-  if (typeof google !== 'undefined' && google.accounts) {
-    const client = google.accounts.oauth2.initTokenClient({
-      client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-      scope: 'profile email openid',
-      callback: async (tokenResponse) => {
-        if (tokenResponse.access_token) {
-          try {
-            // Fetch user profile from Google
-            const resp = await fetch(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${tokenResponse.access_token}`);
-            const profile = await resp.json();
-            completeLogin(profile.name, profile.email, profile.picture, 'Google');
-          } catch (err) {
-            completeLogin('Google User', 'user@gmail.com', null, 'Google');
-          }
-        }
-      }
-    });
-    client.requestAccessToken({ prompt: 'select_account' });
-  } else {
-    // Fallback: open Google account selector in popup
-    const width = 500, height = 600;
-    const left = (screen.width / 2) - (width / 2);
-    const top = (screen.height / 2) - (height / 2);
-    const popup = window.open(
-      'https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com&redirect_uri=' + encodeURIComponent(window.location.origin) + '&response_type=token&scope=profile+email&prompt=select_account',
-      'google_login',
-      `width=${width},height=${height},left=${left},top=${top}`
-    );
-    // Fallback simulation for development (until real Client ID is set)
-    if (!popup || popup.closed) {
-      completeLogin('Google User', 'user@gmail.com', null, 'Google');
-    }
-  }
+  // Open the Google-style account picker modal
+  openGooglePicker();
 }
 
 // Callback for Google One Tap / credential response

@@ -109,8 +109,16 @@
           MATCHING & CAMPAIGNS</span></div>
     </div>
 
-    <!-- Capsule Menu Button (Matching Picture 2) -->
-    <div class="nav-controls">
+    <!-- Capsule Menu + Profile Avatar (Top Right) -->
+    <div class="nav-controls" style="display:flex; align-items:center; gap:0.75rem;">
+      <!-- Profile Avatar (shown after login) -->
+      <div id="nav-profile-btn" style="display:none; cursor:pointer; align-items:center; gap:0.5rem;" onclick="openProfileModal()">
+        <div id="nav-avatar" style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#e63946,#c1121f); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.9rem; color:#fff; border:2px solid rgba(230,57,70,0.6); overflow:hidden;">
+          <span id="nav-avatar-text">U</span>
+          <img id="nav-avatar-img" src="" style="width:100%;height:100%;object-fit:cover;display:none;" />
+        </div>
+        <span id="nav-user-label" style="font-size:0.8rem; font-weight:700; color:#fff; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+      </div>
       <button id="main-menu-toggle-btn" class="capsule-menu-btn" onclick="toggleNavDrawer()">
         <span class="capsule-menu-icon">≡</span>
         <span>Menu</span>
@@ -576,6 +584,89 @@
     </section>
 
   </main>
+
+  <!-- ══════════════════════════════════════════════
+       Google Account Picker Modal (Realistic UI)
+  ══════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="google-account-picker" style="z-index:10000;" onclick="if(event.target===this)closeGooglePicker()">
+    <div style="background:#fff; border-radius:20px; padding:0; width:380px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.5); overflow:hidden; animation:scaleIn 0.25s ease-out;">
+      <!-- Google Header -->
+      <div style="padding:24px 24px 16px; border-bottom:1px solid #e8eaed;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+          <svg width="74" height="24" viewBox="0 0 74 24">
+            <path d="M9.24 8.19v2.46h5.88c-.18 1.38-.64 2.39-1.34 3.1-.86.86-2.2 1.8-4.54 1.8-3.62 0-6.45-2.92-6.45-6.54s2.83-6.54 6.45-6.54c1.95 0 3.38.77 4.43 1.76L15.4 2.5C13.94 1.08 11.98 0 9.24 0 4.28 0 .11 4.04.11 9s4.17 9 9.13 9c2.68 0 4.7-.88 6.28-2.52 1.62-1.62 2.13-3.91 2.13-5.75 0-.57-.04-1.1-.13-1.54H9.24z" fill="#4285F4"/>
+            <path d="M25 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#EA4335"/>
+            <path d="M53.58 7.49h-.09c-.57-.68-1.67-1.3-3.06-1.3C47.53 6.19 45 8.72 45 12c0 3.26 2.53 5.81 5.43 5.81 1.39 0 2.49-.62 3.06-1.32h.09v.81c0 2.22-1.19 3.4-3.1 3.4-1.56 0-2.53-1.12-2.93-2.07l-2.22.92c.64 1.54 2.33 3.43 5.15 3.43 2.99 0 5.52-1.76 5.52-6.05V6.49h-2.42v1zm-2.93 8.03c-1.76 0-3.1-1.5-3.1-3.52 0-2.05 1.34-3.52 3.1-3.52 1.74 0 3.1 1.49 3.1 3.54.01 2.03-1.36 3.5-3.1 3.5z" fill="#4285F4"/>
+            <path d="M38 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#FBBC05"/>
+            <path d="M58.93 1h2.54v16.76h-2.54z" fill="#34A853"/>
+            <path d="M63.86 12.44c-.14-.39-.57-1.11-.91-1.44l7.5-3.1c.39.99.57 1.58.57 2.1 0 1.21-.47 2.27-1.23 3.05l-5.93-.61z" fill="#EA4335"/>
+          </svg>
+        </div>
+        <div style="font-family:'Google Sans',sans-serif; font-size:16px; color:#202124; font-weight:500;">Sign in with Google</div>
+        <div style="font-size:13px; color:#5f6368; margin-top:4px;">to continue to LifePulse</div>
+      </div>
+
+      <!-- Account List -->
+      <div style="padding:8px 0;" id="google-accounts-list">
+        <!-- Accounts injected by JS -->
+      </div>
+
+      <!-- Use another account -->
+      <div style="padding:12px 24px; border-top:1px solid #e8eaed;">
+        <button onclick="closeGooglePicker()" style="width:100%; background:none; border:1px solid #dadce0; border-radius:24px; padding:10px; font-size:14px; color:#1a73e8; font-weight:500; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+          Use another account
+        </button>
+      </div>
+
+      <!-- Footer -->
+      <div style="background:#f8f9fa; padding:12px 24px; display:flex; justify-content:space-between; font-size:11px; color:#5f6368;">
+        <a href="#" style="color:#5f6368; text-decoration:none;">Privacy Policy</a>
+        <span>•</span>
+        <a href="#" style="color:#5f6368; text-decoration:none;">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       User Profile Modal (shown after login)
+  ══════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="profile-modal" onclick="if(event.target===this)closeProfileModal()">
+    <div style="background:linear-gradient(135deg,#0d1117,#161b22); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:0; width:360px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.7); overflow:hidden; animation:scaleIn 0.25s ease-out;">
+      <!-- Profile Header -->
+      <div style="background:linear-gradient(135deg,#e63946,#c1121f); padding:2rem 1.5rem 1.5rem; text-align:center; position:relative;">
+        <button onclick="closeProfileModal()" style="position:absolute; top:1rem; right:1rem; background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius:50%; width:30px; height:30px; cursor:pointer; font-size:1rem;">&times;</button>
+        <div id="profile-avatar-large" style="width:72px; height:72px; border-radius:50%; background:rgba(255,255,255,0.2); margin:0 auto 0.75rem; border:3px solid rgba(255,255,255,0.5); overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:800; color:#fff;">
+          <span id="profile-avatar-letter">U</span>
+          <img id="profile-avatar-photo" src="" style="width:100%;height:100%;object-fit:cover;display:none;" />
+        </div>
+        <div id="profile-display-name" style="font-weight:800; font-size:1.25rem; color:#fff;">User Name</div>
+        <div id="profile-display-email" style="font-size:0.85rem; color:rgba(255,255,255,0.8); margin-top:0.25rem;">user@email.com</div>
+        <div id="profile-provider-badge" style="margin-top:0.5rem; display:inline-block; background:rgba(255,255,255,0.2); border-radius:20px; padding:2px 12px; font-size:0.75rem; color:#fff;">Signed in</div>
+      </div>
+
+      <!-- Profile Stats -->
+      <div style="padding:1.25rem 1.5rem;">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; margin-bottom:1.25rem;">
+          <div style="text-align:center; background:rgba(255,255,255,0.05); border-radius:12px; padding:0.75rem;">
+            <div style="font-size:1.4rem; font-weight:800; color:#e63946;">0</div>
+            <div style="font-size:0.7rem; color:#a1a1aa;">Donations</div>
+          </div>
+          <div style="text-align:center; background:rgba(255,255,255,0.05); border-radius:12px; padding:0.75rem;">
+            <div style="font-size:1.4rem; font-weight:800; color:#10b981;">0</div>
+            <div style="font-size:0.7rem; color:#a1a1aa;">Campaigns</div>
+          </div>
+          <div style="text-align:center; background:rgba(255,255,255,0.05); border-radius:12px; padding:0.75rem;">
+            <div style="font-size:1.4rem; font-weight:800; color:#f59e0b;">0</div>
+            <div style="font-size:0.7rem; color:#a1a1aa;">Matches</div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <button onclick="switchRole('donor'); closeProfileModal();" style="width:100%; background:linear-gradient(135deg,#e63946,#c1121f); border:none; border-radius:12px; padding:0.75rem; color:#fff; font-weight:700; font-size:0.9rem; cursor:pointer; margin-bottom:0.6rem;">🩸 My Donor Profile</button>
+        <button onclick="handleLogout()" style="width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:0.75rem; color:#ef4444; font-weight:700; font-size:0.9rem; cursor:pointer;">🚪 Sign Out</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Login / Switch Account Modal (Matching Picture 2 Design & App Theme) -->
   <div class="modal-overlay" id="login-modal">
