@@ -1385,10 +1385,17 @@ function toggleNotifDrawer() {
     loadNotifications();
   }
 }
-function handleGoogleLogin() {
-  // 1. லாகின் வெற்றியை பிரவுசரில் சேமிக்க
-  localStorage.setItem("isLoggedIn", "true");
-
-  // 2. லாகின் ஆனவுடன் ஹோம் பேஜூக்கு (index.html) செல்ல
-  window.location.href = "index.html";
-}
+// Auto-restore login session if available
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    const saved = sessionStorage.getItem('lp_user') || localStorage.getItem('lp_user');
+    if (saved) {
+      const u = JSON.parse(saved);
+      if (u && u.userName) {
+        currentUserProfile = u;
+        currentUserName = u.userName;
+        updateNavProfile(u.userName, u.email, u.avatarUrl, u.provider);
+      }
+    }
+  } catch (e) { }
+});
