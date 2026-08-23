@@ -1511,3 +1511,25 @@ header {
   transform: translateY(-3px) scale(1.08);
   box-shadow: 0 8px 22px rgba(255, 255, 255, 0.25);
 }
+
+/* ──────────────────────────────────────────
+   Login Toast Notification Animation
+────────────────────────────────────────── */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(80px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Social SSO Row - Only 2 buttons (Google + Facebook) */
+.social-sso-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.1rem;
+}

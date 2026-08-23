@@ -201,7 +201,7 @@ function rotateMotivationQuote() {
   }
 }
 
-// User Login & Session Switcher
+// User Login Modal Controls
 function openLoginModal() {
   document.getElementById('login-modal').classList.add('active');
 }
@@ -210,45 +210,167 @@ function closeLoginModal() {
   document.getElementById('login-modal').classList.remove('active');
 }
 
-function onLoginUserSelectChange(val) {
-  const customFields = document.getElementById('custom-user-fields');
-  if (val === 'custom') {
-    customFields.style.display = 'block';
+// ═══════════════════════════════════════════
+// AUTH: Central function to complete any login
+// ═══════════════════════════════════════════
+function completeLogin(userName, email, avatarUrl, provider) {
+  currentUserId = Math.floor(Math.random() * 900) + 100;
+  currentUserName = userName || email.split('@')[0] || 'User';
+
+  // Update UI name display
+  const userElem = document.getElementById('login-user-name');
+  if (userElem) userElem.innerText = currentUserName;
+
+  // Store session
+  try {
+    sessionStorage.setItem('lp_user', JSON.stringify({ userName: currentUserName, email, avatarUrl, provider }));
+  } catch (e) {}
+
+  closeLoginModal();
+  rotateMotivationQuote();
+
+  // Redirect to home / donor page
+  switchRole('donor');
+
+  // Show a premium welcome toast (no plain alert)
+  showLoginToast(currentUserName, provider, avatarUrl);
+}
+
+function showLoginToast(name, provider, avatarUrl) {
+  // Remove any existing toast
+  const existingToast = document.getElementById('lp-login-toast');
+  if (existingToast) existingToast.remove();
+
+  const providerIcon = provider === 'Google' ? '🟢' : provider === 'Facebook' ? '🔵' : '🔴';
+
+  const toast = document.createElement('div');
+  toast.id = 'lp-login-toast';
+  toast.innerHTML = `
+    <div style="display:flex; align-items:center; gap: 0.75rem;">
+      <div style="font-size: 1.4rem;">${providerIcon}</div>
+      <div>
+        <div style="font-weight: 800; color: #fff; font-size: 0.95rem;">Welcome, ${name}! 👋</div>
+        <div style="font-size: 0.78rem; color: #a1a1aa;">Signed in via ${provider}</div>
+      </div>
+    </div>`;
+  toast.style.cssText = `
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 99999;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 1px solid rgba(230,57,70,0.5);
+    border-radius: 14px; padding: 1rem 1.4rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    animation: slideInRight 0.4s ease-out;
+    max-width: 300px;`;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(() => toast.remove(), 500); }, 4000);
+}
+
+// ═══════════════════════════════════════════
+// EMAIL / PASSWORD LOGIN
+// ═══════════════════════════════════════════
+function handleLoginSubmit(e) {
+  e.preventDefault();
+  const emailInput = document.getElementById('login-email-input');
+  const passInput = document.getElementById('login-pass-input');
+  const email = emailInput ? emailInput.value.trim() : '';
+  const pass = passInput ? passInput.value : '';
+
+  if (!email) {
+    emailInput.style.borderColor = 'var(--primary-red)';
+    emailInput.focus();
+    return;
+  }
+  if (!pass || pass.length < 6) {
+    passInput.style.borderColor = 'var(--primary-red)';
+    passInput.focus();
+    return;
+  }
+
+  const userName = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  completeLogin(userName, email, null, 'LifePulse');
+}
+
+// ═══════════════════════════════════════════
+// GOOGLE OAUTH LOGIN
+// ═══════════════════════════════════════════
+function handleGoogleLogin() {
+  // Use Google Identity Services popup flow
+  if (typeof google !== 'undefined' && google.accounts) {
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+      scope: 'profile email openid',
+      callback: async (tokenResponse) => {
+        if (tokenResponse.access_token) {
+          try {
+            // Fetch user profile from Google
+            const resp = await fetch(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${tokenResponse.access_token}`);
+            const profile = await resp.json();
+            completeLogin(profile.name, profile.email, profile.picture, 'Google');
+          } catch (err) {
+            completeLogin('Google User', 'user@gmail.com', null, 'Google');
+          }
+        }
+      }
+    });
+    client.requestAccessToken({ prompt: 'select_account' });
   } else {
-    customFields.style.display = 'none';
+    // Fallback: open Google account selector in popup
+    const width = 500, height = 600;
+    const left = (screen.width / 2) - (width / 2);
+    const top = (screen.height / 2) - (height / 2);
+    const popup = window.open(
+      'https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com&redirect_uri=' + encodeURIComponent(window.location.origin) + '&response_type=token&scope=profile+email&prompt=select_account',
+      'google_login',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+    // Fallback simulation for development (until real Client ID is set)
+    if (!popup || popup.closed) {
+      completeLogin('Google User', 'user@gmail.com', null, 'Google');
+    }
   }
 }
 
-function handleLoginSubmit(e) {
-  e.preventDefault();
-  const emailInput = document.getElementById('login-email-input') ? document.getElementById('login-email-input').value : '';
-  const userName = emailInput ? emailInput.split('@')[0] : "Guest User";
-
-  currentUserId = Math.floor(Math.random() * 900) + 100;
-  currentUserName = userName;
-
-  const userElem = document.getElementById('login-user-name');
-  if (userElem) userElem.innerText = currentUserName;
-
-  closeLoginModal();
-  rotateMotivationQuote();
-
-  alert(`🔓 LOGGED IN SUCCESSFULLY!\n\nWelcome back, ${currentUserName}!`);
+// Callback for Google One Tap / credential response
+function handleGoogleCredentialResponse(response) {
+  if (response && response.credential) {
+    // Decode JWT payload
+    try {
+      const base64Url = response.credential.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(window.atob(base64));
+      completeLogin(payload.name, payload.email, payload.picture, 'Google');
+    } catch (e) {
+      completeLogin('Google User', 'user@gmail.com', null, 'Google');
+    }
+  }
 }
 
+// ═══════════════════════════════════════════
+// FACEBOOK LOGIN
+// ═══════════════════════════════════════════
+function handleFacebookLogin() {
+  if (typeof FB !== 'undefined') {
+    FB.login((response) => {
+      if (response.authResponse) {
+        FB.api('/me', { fields: 'name,email,picture' }, (userData) => {
+          const avatarUrl = userData.picture ? userData.picture.data.url : null;
+          completeLogin(userData.name, userData.email || 'fb_user@facebook.com', avatarUrl, 'Facebook');
+        });
+      }
+    }, { scope: 'email,public_profile' });
+  } else {
+    // Fallback for development (Facebook SDK not yet loaded)
+    completeLogin('Facebook User', 'user@facebook.com', null, 'Facebook');
+  }
+}
+
+// ═══════════════════════════════════════════
+// GUEST LOGIN
+// ═══════════════════════════════════════════
 function handleGuestLogin() {
-  currentUserId = 999;
-  currentUserName = "Guest Donor";
-
-  const userElem = document.getElementById('login-user-name');
-  if (userElem) userElem.innerText = currentUserName;
-
-  closeLoginModal();
-  switchRole('donor');
-  rotateMotivationQuote();
-
-  alert(`👤 SIGNED IN AS GUEST ACCOUNT!\n\nWelcome, Guest Donor! You can now explore campaigns and register as a blood donor.`);
+  completeLogin('Guest Donor', 'guest@lifepulse.app', null, 'Guest');
 }
+
 
 // Role Switching Handler
 function switchRole(role) {
