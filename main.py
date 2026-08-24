@@ -251,6 +251,15 @@ def create_blood_request(
         details=f"Created request for {request_in.blood_type_needed} blood (Urgency: {request_in.urgency.value}). Matched {len(matched_candidates)} donors."
     )
 
+    # Broadcast push notification to all active users
+    notification_service.broadcast_blood_request(
+        patient_name=request_in.patient_name,
+        blood_group=request_in.blood_type_needed.value,
+        city=request_in.location.city if request_in.location else "your area",
+        urgency=request_in.urgency.value,
+        hospital=request_in.hospital_name or "Nearby Hospital"
+    )
+
     return new_request
 
 
@@ -505,6 +514,57 @@ def get_notifications(user_id: Optional[int] = Query(None)):
         return [n for n in notification_service.notifications if n.user_id == user_id or n.user_id == 0]
     return notification_service.notifications
 
+
+@app.get("/api/notifications/latest")
+def get_latest_notifications(since_id: int = Query(0), user_id: Optional[int] = Query(None)):
+    """
+    Returns only notifications newer than since_id (for live polling).
+    Frontend polls this every 10s to detect new broadcast events.
+    """
+    all_notifs = notification_service.notifications
+    if user_id:
+        all_notifs = [n for n in all_notifs if n.user_id == user_id or n.user_id == 0]
+    new_ones = [n for n in all_notifs if n.id > since_id]
+    return {"notifications": new_ones, "latest_id": all_notifs[0].id if all_notifs else 0}
+
+
+import asyncio
+import json as json_mod
+from fastapi.responses import StreamingResponse
+
+@app.get("/api/events")
+async def event_stream(user_id: Optional[int] = Query(None)):
+    """
+    Server-Sent Events (SSE) endpoint — streams live notifications to connected clients.
+    Frontend connects once and receives push updates in real time.
+    """
+    async def generate():
+        last_id = len(notification_service.notifications)
+        yield f"data: {json_mod.dumps({'type': 'connected', 'message': 'Live event stream connected'})}\n\n"
+        while True:
+            await asyncio.sleep(4)  # Check every 4 seconds
+            current = notification_service.notifications
+            new_notifs = [n for n in current if n.id > last_id]
+            if user_id:
+                new_notifs = [n for n in new_notifs if n.user_id == user_id or n.user_id == 0]
+            for notif in reversed(new_notifs):
+                payload = {
+                    "type": "notification",
+                    "id": notif.id,
+                    "title": notif.title,
+                    "message": notif.message,
+                    "channel": notif.channel,
+                    "sent_at": notif.sent_at.isoformat(),
+                    "notif_type": notif.payload.get("type", "INFO") if notif.payload else "INFO"
+                }
+                yield f"data: {json_mod.dumps(payload)}\n\n"
+                last_id = max(last_id, notif.id)
+
+    return StreamingResponse(generate(), media_type="text/event-stream", headers={
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+        "Connection": "keep-alive"
+    })
 
 
 # Mount Static Files for Web Dashboard

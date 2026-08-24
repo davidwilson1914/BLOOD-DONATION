@@ -101,7 +101,63 @@ document.addEventListener('DOMContentLoaded', () => {
   loadCampaigns();
   loadNotifications();
   setDefaultDatesInCampaignForm();
+  // Connect live event stream for real-time updates
+  connectLiveEventStream();
 });
+
+// ═══════════════════════════════════════════
+// SSE LIVE EVENT STREAM — Real-time push from server
+// ═══════════════════════════════════════════
+let liveEventSource = null;
+
+function connectLiveEventStream() {
+  if (liveEventSource) liveEventSource.close();
+
+  const url = `/api/events?user_id=${currentUserId}`;
+  liveEventSource = new EventSource(url);
+
+  liveEventSource.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.type === 'connected') return; // Handshake
+
+      if (data.type === 'notification') {
+        handleIncomingLiveNotification(data);
+      }
+    } catch (e) {}
+  };
+
+  liveEventSource.onerror = () => {
+    // Auto-reconnect after 8 seconds if connection drops
+    setTimeout(connectLiveEventStream, 8000);
+  };
+}
+
+function handleIncomingLiveNotification(data) {
+  const type = data.notif_type || 'INFO';
+  let icon = '🔔';
+  let refreshFn = null;
+
+  if (type === 'DONOR_UPDATE') {
+    icon = '🩸';
+    refreshFn = () => { loadDonors(); loadAnalytics(); };
+  } else if (type === 'CAMPAIGN_UPDATE') {
+    icon = '📢';
+    refreshFn = () => { loadCampaigns(); loadAnalytics(); };
+  } else if (type === 'BLOOD_REQUEST') {
+    icon = '🚨';
+    refreshFn = () => { loadRequests(); loadAnalytics(); };
+  }
+
+  // Show live broadcast toast to the current user
+  showBroadcastToast(`${icon} ${data.title}`, data.message);
+
+  // Update notification badge & center
+  loadNotifications();
+
+  // Refresh relevant data so UI reflects the update
+  if (refreshFn) refreshFn();
+}
 
 // Location Permission Dialog on Site Entry
 function checkLocationPermissionOnEntry() {
@@ -1169,13 +1225,24 @@ async function handleCreateRequest(event) {
     const data = await res.json();
     document.getElementById('create-request-form').reset();
 
+    // Broadcast push toast to other users on the platform
+    showBroadcastToast(
+      `🚨 Emergency ${bloodType} Blood Needed!`,
+      `Patient ${patientName} urgently needs ${units} unit(s) at ${hospitalLoc || city}. Please respond!`
+    );
+
     alert(`🎉 EMERGENCY BLOOD REQUEST DISPATCHED!\n\nPatient: "${patientName}"\nBlood Needed: ${bloodType} (${units} Pints)\nContact Mobile: ${phone}\nHospital Location: ${hospitalLoc}\n\n🚨 Live SMS & Push Alerts have been dispatched to ${data.matched_donor_count || 5} compatible donors nearby!`);
 
     loadRequests();
     loadAnalytics();
+    loadNotifications();
   } catch (err) {
     console.error('Error creating request:', err);
     document.getElementById('create-request-form').reset();
+    showBroadcastToast(
+      `🚨 Emergency ${bloodType} Blood Needed!`,
+      `Patient ${patientName} urgently needs blood at ${hospitalLoc || city}. Please respond!`
+    );
     alert(`🎉 EMERGENCY BLOOD REQUEST DISPATCHED!\n\nPatient: "${patientName}"\nBlood Needed: ${bloodType} (${units} Pints)\nContact Mobile: ${phone}\nHospital Location: ${hospitalLoc}\n\n🚨 Live SMS & Push Alerts have been dispatched to compatible donors nearby!`);
   }
 }

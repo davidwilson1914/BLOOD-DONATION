@@ -176,6 +176,43 @@ class NotificationService:
         self.notifications.insert(0, notif)
         return notif
 
+    def broadcast_blood_request(
+        self,
+        patient_name: str,
+        blood_group: str,
+        city: str,
+        urgency: str,
+        hospital: str
+    ) -> Notification:
+        """
+        Pushes a real-time broadcast notification to all active users about an urgent blood request.
+        """
+        urgency_icon = "🆘" if urgency.upper() in ("CRITICAL", "EMERGENCY") else "🚨"
+        title = f"{urgency_icon} Urgent {blood_group} Blood Needed — {city}"
+        message = (
+            f"Patient {patient_name} urgently needs {blood_group} blood at {hospital}, {city}. "
+            f"Urgency: {urgency}. Compatible donors — please respond immediately!"
+        )
+        notif = Notification(
+            id=len(self.notifications) + 1,
+            user_id=0,  # 0 = global broadcast to all users
+            title=title,
+            message=message,
+            channel="Emergency Broadcast",
+            sent_at=datetime.now(),
+            read=False,
+            payload={
+                "type": "BLOOD_REQUEST",
+                "patient_name": patient_name,
+                "blood_group": blood_group,
+                "city": city,
+                "urgency": urgency,
+                "hospital": hospital
+            }
+        )
+        self.notifications.insert(0, notif)
+        return notif
+
 
 notification_service = NotificationService()
 
