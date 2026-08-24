@@ -111,16 +111,26 @@ document.addEventListener('DOMContentLoaded', () => {
 let liveEventSource = null;
 
 function connectLiveEventStream() {
-  if (liveEventSource) liveEventSource.close();
+  if (liveEventSource) {
+    liveEventSource.close();
+    liveEventSource = null;
+  }
 
-  const url = `/api/events?user_id=${currentUserId}`;
+  // Use broadcast channel — no user_id filter so ALL logged-in users get ALL broadcasts
+  const url = `/api/events`;
   liveEventSource = new EventSource(url);
+
+  liveEventSource.onopen = () => {
+    console.log('[LifePulse] 📡 Live event stream connected');
+  };
 
   liveEventSource.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      if (data.type === 'connected') return; // Handshake
-
+      if (data.type === 'connected') {
+        console.log('[LifePulse] ✅ SSE handshake OK');
+        return;
+      }
       if (data.type === 'notification') {
         handleIncomingLiveNotification(data);
       }
@@ -128,35 +138,38 @@ function connectLiveEventStream() {
   };
 
   liveEventSource.onerror = () => {
-    // Auto-reconnect after 8 seconds if connection drops
-    setTimeout(connectLiveEventStream, 8000);
+    console.warn('[LifePulse] SSE error — reconnecting in 6s...');
+    if (liveEventSource) { liveEventSource.close(); liveEventSource = null; }
+    setTimeout(connectLiveEventStream, 6000);
   };
 }
 
 function handleIncomingLiveNotification(data) {
   const type = data.notif_type || 'INFO';
   let icon = '🔔';
-  let refreshFn = null;
 
   if (type === 'DONOR_UPDATE') {
     icon = '🩸';
-    refreshFn = () => { loadDonors(); loadAnalytics(); };
+    // Refresh donor directory for ALL users on any tab
+    loadDonors().then(() => {
+      renderRegisteredDonors();
+    });
+    loadAnalytics();
   } else if (type === 'CAMPAIGN_UPDATE') {
     icon = '📢';
-    refreshFn = () => { loadCampaigns(); loadAnalytics(); };
+    loadCampaigns();
+    loadAnalytics();
   } else if (type === 'BLOOD_REQUEST') {
     icon = '🚨';
-    refreshFn = () => { loadRequests(); loadAnalytics(); };
+    loadRequests();
+    loadAnalytics();
   }
 
-  // Show live broadcast toast to the current user
+  // Show live broadcast toast popup to the current user
   showBroadcastToast(`${icon} ${data.title}`, data.message);
 
-  // Update notification badge & center
+  // Update notification badge & refresh notification center
   loadNotifications();
-
-  // Refresh relevant data so UI reflects the update
-  if (refreshFn) refreshFn();
 }
 
 // Location Permission Dialog on Site Entry
@@ -720,6 +733,15 @@ function completeLogin(userName, email, avatarUrl, provider) {
   rotateMotivationQuote();
   switchRole('donor');
   showLoginToast(currentUserName, provider, avatarUrl);
+
+  // Re-establish SSE stream now that user is authenticated
+  connectLiveEventStream();
+
+  // Load all fresh data for this user
+  loadDonors();
+  loadCampaigns();
+  loadRequests();
+  loadNotifications();
 }
 
 function showLoginToast(name, provider, avatarUrl) {
