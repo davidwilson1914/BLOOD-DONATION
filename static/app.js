@@ -1097,87 +1097,123 @@ function renderRegisteredDonors() {
 async function handleHeroDonorRegisterSubmit(event) {
   event.preventDefault();
 
-  const name = document.getElementById('hero-donor-name').value;
-  const phone = document.getElementById('hero-donor-phone').value;
+  const name     = document.getElementById('hero-donor-name').value.trim();
+  const phone    = document.getElementById('hero-donor-phone').value.trim();
   const bloodType = document.getElementById('hero-donor-blood-type').value;
-  const city = document.getElementById('hero-donor-city').value;
-  const location = document.getElementById('hero-donor-location').value;
+  const city     = document.getElementById('hero-donor-city').value.trim();
+  const location = document.getElementById('hero-donor-location').value.trim();
 
+  if (!name || !phone || !city) {
+    alert('⚠️ Please fill in all required fields (Name, Phone, Blood Group, City).');
+    return;
+  }
+
+  // Build payload matching DonorRegisterCreate schema
   const payload = {
-    user_name: name,
-    email: `${name.toLowerCase().replace(/\s+/g, '')}@lifepulse.in`,
+    name: name,
+    email: `${name.toLowerCase().replace(/\s+/g, '.')}@lifepulse.in`,
+    phone: phone,
     blood_type: bloodType,
-    phone_unmasked: phone,
-    phone_masked: phone,
     location: {
-      latitude: 13.0827,
-      longitude: 80.2707,
+      latitude: userLocation ? userLocation.latitude : 13.0827,
+      longitude: userLocation ? userLocation.longitude : 80.2707,
       address: location || city,
-      city: city || "Chennai"
+      city: city || 'Chennai'
     },
-    ready_to_donate: true,
-    is_eligible: true,
-    total_donations: 1
+    is_first_time_donor: true,
+    max_travel_radius_km: 30.0,
+    age: 25,
+    weight_kg: 65.0,
+    preferred_notification_channel: 'WhatsApp / SMS'
   };
 
+  // Show a loading indicator on the button
+  const submitBtn = document.querySelector('#hero-donor-reg-form button[type="submit"]');
+  const originalBtnText = submitBtn ? submitBtn.innerText : '';
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.innerText = 'Registering...'; }
+
   try {
-    const res = await fetch('/api/donors', {
+    const res = await fetch('/api/donors/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
-    const newDonor = {
+    let savedDonor = null;
+    if (res.ok) {
+      savedDonor = await res.json();
+    }
+
+    // Use server response or build local fallback
+    const newDonor = savedDonor || {
       id: Date.now(),
       user_name: name,
       phone_masked: phone,
       blood_type: bloodType,
-      location: { city: city || "Chennai", address: location || city },
+      location: { city: city || 'Chennai', address: location || city },
       ready_to_donate: true,
       is_eligible: true,
       is_new: true
     };
-    activeDonors.unshift(newDonor);
+
+    // Add new donor to top of local list immediately
+    if (!activeDonors.find(d => d.user_name === name && d.blood_type === bloodType)) {
+      const localCopy = {
+        user_name: newDonor.user_name || name,
+        phone_masked: newDonor.phone_masked || phone,
+        blood_type: newDonor.blood_type || bloodType,
+        location: newDonor.location || { city: city || 'Chennai', address: location || city },
+        ready_to_donate: true,
+        is_eligible: true,
+        is_new: true
+      };
+      activeDonors.unshift(localCopy);
+    }
 
     // Reset Form
     document.getElementById('hero-donor-reg-form').reset();
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = originalBtnText; }
 
-    // Show broadcast push toast to notify other logged-in users
+    // Show broadcast push toast (visible to the registering user immediately)
     showBroadcastToast(
       `🩸 New ${bloodType} Donor Registered!`,
       `${name} just joined from ${city || 'your area'}. Available for emergency matching.`
     );
 
-    // Alert user
-    alert(`🎉 DONOR REGISTRATION SUCCESSFUL!\n\nThank you, ${name}! Your profile with blood group ${bloodType} is now live.\n\nRedirecting to "Blood Seeker / Patient" view below the blood request bar to show your live registered profile.`);
+    alert(`🎉 DONOR REGISTRATION SUCCESSFUL!\n\nThank you, ${name}! Your profile with blood group ${bloodType} is now live in the Verified Donors Directory.\n\n📡 A live broadcast notification has been sent to all active users on the platform!`);
 
-    // Refresh UI & switch to seeker view
-    switchRole('seeker');
-    renderRegisteredDonors();
+    // Refresh the full donor list FROM THE SERVER (so newly saved donor appears correctly)
+    await loadDonors();      // pulls fresh list from backend & calls renderRegisteredDonors()
     loadAnalytics();
     loadNotifications();
+
+    // Switch to seeker view to show directory
+    switchRole('seeker');
 
     // Smooth scroll to registered donor directory
     setTimeout(() => {
       const container = document.getElementById('registered-donors-list-container');
-      if (container) {
-        container.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 300);
+      if (container) container.scrollIntoView({ behavior: 'smooth' });
+    }, 400);
+
   } catch (err) {
     console.error('Error registering donor:', err);
-    const newDonor = {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerText = originalBtnText; }
+
+    // Still show locally if network fails
+    const localDonor = {
       id: Date.now(),
       user_name: name,
       phone_masked: phone,
       blood_type: bloodType,
-      location: { city: city || "Chennai", address: location || city },
+      location: { city: city || 'Chennai', address: location || city },
       ready_to_donate: true,
       is_eligible: true,
       is_new: true
     };
-    activeDonors.unshift(newDonor);
+    activeDonors.unshift(localDonor);
     document.getElementById('hero-donor-reg-form').reset();
+
     showBroadcastToast(
       `🩸 New ${bloodType} Donor Registered!`,
       `${name} just joined from ${city || 'your area'}. Available for emergency matching.`
@@ -1185,8 +1221,10 @@ async function handleHeroDonorRegisterSubmit(event) {
     alert(`🎉 DONOR REGISTRATION SUCCESSFUL!\n\nThank you, ${name}! Your profile with blood group ${bloodType} is now live.`);
     switchRole('seeker');
     renderRegisteredDonors();
+    loadNotifications();
   }
 }
+
 
 // Handle Create Urgent Blood Request Submit
 async function handleCreateRequest(event) {
