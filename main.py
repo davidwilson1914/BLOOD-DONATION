@@ -112,6 +112,14 @@ def register_new_donor(reg_in: DonorRegisterCreate):
         details=f"Registered new {reg_in.blood_type.value} donor: {reg_in.name} in {reg_in.location.city}"
     )
 
+    # 5. Broadcast Push Notification to other active users
+    notification_service.broadcast_donor_update(
+        donor_name=reg_in.name,
+        blood_group=reg_in.blood_type.value,
+        city=reg_in.location.city,
+        action="registered"
+    )
+
     return new_donor
 
 @app.get("/api/donors", response_model=List[DonorProfile])
@@ -419,6 +427,15 @@ def create_or_update_campaign(
                     resource_id=str(c.id),
                     details=f"Updated Campaign drive: '{c.title}' in {c.location.city}"
                 )
+
+                # Broadcast update push alert
+                notification_service.broadcast_campaign_update(
+                    campaign_title=c.title,
+                    organizer=c.organizer_name,
+                    city=c.location.city,
+                    blood_types=", ".join([bt.value for bt in c.blood_types_needed]),
+                    action="updated"
+                )
                 return c
 
     new_id = max([c.id for c in db.campaigns] or [100]) + 1
@@ -450,6 +467,15 @@ def create_or_update_campaign(
         details=f"Created Campaign drive: '{camp_in.title}' in {camp_in.location.city}"
     )
 
+    # Broadcast new campaign push alert
+    notification_service.broadcast_campaign_update(
+        campaign_title=camp_in.title,
+        organizer=camp_in.organizer_name,
+        city=camp_in.location.city,
+        blood_types=", ".join([bt.value for bt in camp_in.blood_types_needed]),
+        action="created"
+    )
+
     return new_campaign
 
 
@@ -470,6 +496,14 @@ def join_campaign(campaign_id: int, donor_id: int = Query(10)):
             )
             return {"status": "joined", "campaign_id": campaign_id, "participants_count": c.participants_count}
     raise HTTPException(status_code=404, detail="Campaign drive not found")
+
+
+@app.get("/api/notifications")
+def get_notifications(user_id: Optional[int] = Query(None)):
+    """Returns all system notifications & real-time broadcast alerts."""
+    if user_id:
+        return [n for n in notification_service.notifications if n.user_id == user_id or n.user_id == 0]
+    return notification_service.notifications
 
 
 

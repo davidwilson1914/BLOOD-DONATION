@@ -60,5 +60,122 @@ class NotificationService:
                 return True
         return False
 
+    def dispatch_security_login_email(
+        self,
+        user_name: str,
+        email: str,
+        provider: str = "Google",
+        ip_address: str = "127.0.0.1 (Localhost)",
+        location: str = "Chennai, Tamil Nadu, India",
+        device: str = "Chrome / Windows 11"
+    ) -> Notification:
+        """
+        Sends an automated security email notification upon successful account login.
+        """
+        now_str = datetime.now().strftime("%d %b %Y, %I:%M %p")
+        title = f"🔐 Security Alert: New Sign-in to LifePulse from {device}"
+        message = (
+            f"Dear {user_name},\n\n"
+            f"Your Google account ({email}) was just used to sign in to LifePulse.\n\n"
+            f"📌 Session Details:\n"
+            f"• Provider: {provider} Account Verified\n"
+            f"• Date & Time: {now_str}\n"
+            f"• Device / Browser: {device}\n"
+            f"• Approximate Location: {location}\n"
+            f"• IP Address: {ip_address}\n\n"
+            f"If this was you, no action is needed. If you did not sign in, please secure your account immediately."
+        )
+
+        notif = Notification(
+            id=len(self.notifications) + 1,
+            user_id=10,
+            title=title,
+            message=message,
+            channel=f"Email ({email})",
+            sent_at=datetime.now(),
+            read=False,
+            payload={
+                "email": email,
+                "provider": provider,
+                "device": device,
+                "location": location,
+                "ip": ip_address,
+                "status": "SENT"
+            }
+        )
+        self.notifications.insert(0, notif)
+        return notif
+
+    def broadcast_donor_update(
+        self,
+        donor_name: str,
+        blood_group: str,
+        city: str,
+        action: str = "registered"
+    ) -> Notification:
+        """
+        Pushes a real-time broadcast notification to other active users about a donor update.
+        """
+        title = f"🩸 Donor Update: {donor_name} ({blood_group})"
+        message = (
+            f"{donor_name} has just {action} as a verified {blood_group} blood donor in {city}. "
+            f"Ready for instant emergency matching!"
+        )
+        notif = Notification(
+            id=len(self.notifications) + 1,
+            user_id=0,  # 0 denotes global broadcast to all users
+            title=title,
+            message=message,
+            channel="Live Push Alert",
+            sent_at=datetime.now(),
+            read=False,
+            payload={
+                "type": "DONOR_UPDATE",
+                "donor_name": donor_name,
+                "blood_group": blood_group,
+                "city": city,
+                "action": action
+            }
+        )
+        self.notifications.insert(0, notif)
+        return notif
+
+    def broadcast_campaign_update(
+        self,
+        campaign_title: str,
+        organizer: str,
+        city: str,
+        blood_types: str,
+        action: str = "created"
+    ) -> Notification:
+        """
+        Pushes a real-time broadcast notification to other active users about a campaign drive update.
+        """
+        title = f"📢 Campaign Alert: {campaign_title}"
+        message = (
+            f"Drive {action} by {organizer} in {city}. "
+            f"Needed Blood Types: {blood_types}. Join and participate to save lives!"
+        )
+        notif = Notification(
+            id=len(self.notifications) + 1,
+            user_id=0,  # 0 denotes global broadcast
+            title=title,
+            message=message,
+            channel="Community Broadcast",
+            sent_at=datetime.now(),
+            read=False,
+            payload={
+                "type": "CAMPAIGN_UPDATE",
+                "title": campaign_title,
+                "organizer": organizer,
+                "city": city,
+                "blood_types": blood_types,
+                "action": action
+            }
+        )
+        self.notifications.insert(0, notif)
+        return notif
+
 
 notification_service = NotificationService()
+

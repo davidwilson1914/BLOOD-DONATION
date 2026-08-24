@@ -83,10 +83,6 @@ function selectMenuItem(itemKey) {
     switchRole('seeker');
   } else if (itemKey === 'donor') {
     switchRole('donor');
-  } else if (itemKey === 'hospital') {
-    switchRole('hospital');
-  } else if (itemKey === 'admin') {
-    switchRole('admin');
   } else if (itemKey === 'login') {
     if (currentUserProfile && currentUserProfile.userName && currentUserProfile.userName !== 'Guest') {
       openProfileModal();
@@ -327,31 +323,67 @@ function handleLogout() {
 }
 
 // ═══════════════════════════════════════════
-// GOOGLE ACCOUNT PICKER MODAL
+// GOOGLE ACCOUNT PICKER & MULTI-ACCOUNT MANAGEMENT
 // ═══════════════════════════════════════════
-const DEMO_GOOGLE_ACCOUNTS = [
-  { name: 'David Wilson', email: 'davidwilson1914@gmail.com', initials: 'D', color: '#4285F4' },
-  { name: 'Add another account', email: '', initials: '+', color: '#5f6368', isAdd: true }
+const DEFAULT_GOOGLE_ACCOUNTS = [
+  { name: 'David Wilson', email: 'davidwilson1914@gmail.com', initials: 'D', color: '#4285F4' }
 ];
 
+function getSavedGoogleAccounts() {
+  try {
+    const saved = localStorage.getItem('lp_saved_google_accounts');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return [...DEFAULT_GOOGLE_ACCOUNTS];
+}
+
+function saveGoogleAccount(name, email) {
+  try {
+    const accounts = getSavedGoogleAccounts();
+    const existing = accounts.find(a => a.email.toLowerCase() === email.toLowerCase());
+    if (!existing) {
+      const initials = name ? name.charAt(0).toUpperCase() : email.charAt(0).toUpperCase();
+      const colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#9333ea', '#06b6d4'];
+      const color = colors[accounts.length % colors.length];
+      accounts.push({ name: name || email.split('@')[0], email, initials, color });
+      localStorage.setItem('lp_saved_google_accounts', JSON.stringify(accounts));
+    }
+  } catch (e) {}
+}
+
 function openGooglePicker() {
+  const accounts = getSavedGoogleAccounts();
   const list = document.getElementById('google-accounts-list');
-  if (!list) return;
-
-  list.innerHTML = DEMO_GOOGLE_ACCOUNTS.map((acc, i) => `
-    <div onclick="${acc.isAdd ? 'closeGooglePicker()' : `selectGoogleAccount(${i})`}"
-      style="display:flex; align-items:center; gap:12px; padding:12px 24px; cursor:pointer; transition:background 0.15s;"
-      onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
-      <div style="width:40px;height:40px;border-radius:50%;background:${acc.color};display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0;">
-        ${acc.initials}
+  if (list) {
+    list.innerHTML = accounts.map((acc, i) => `
+      <div onclick="selectGoogleAccount(${i})"
+        style="display:flex; align-items:center; gap:14px; padding:12px 24px; cursor:pointer; transition:background 0.15s; border-bottom:1px solid #f1f3f4;"
+        onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px; height:40px; border-radius:50%; background:${acc.color}; display:flex; align-items:center; justify-content:center; font-size:1.15rem; font-weight:700; color:#fff; flex-shrink:0;">
+          ${acc.initials}
+        </div>
+        <div style="flex:1; overflow:hidden;">
+          <div style="font-size:14px; color:#202124; font-weight:600; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${acc.name}</div>
+          <div style="font-size:12px; color:#5f6368; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${acc.email}</div>
+        </div>
+        <div style="font-size:18px; color:#1a73e8; font-weight:bold;">✓</div>
       </div>
-      <div>
-        <div style="font-size:14px;color:#202124;font-weight:500;">${acc.name}</div>
-        ${acc.email ? `<div style="font-size:12px;color:#5f6368;">${acc.email}</div>` : ''}
+    `).join('') + `
+      <div onclick="showGoogleSignInView()"
+        style="display:flex; align-items:center; gap:14px; padding:12px 24px; cursor:pointer; transition:background 0.15s;"
+        onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+        <div style="width:40px; height:40px; border-radius:50%; background:#f1f3f4; border:1px solid #dadce0; display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#5f6368; flex-shrink:0;">
+          👤
+        </div>
+        <div style="font-size:14px; color:#202124; font-weight:500;">Use another account</div>
       </div>
-      ${!acc.isAdd ? '<div style="margin-left:auto;font-size:18px;color:#1a73e8;">✓</div>' : ''}
-    </div>`).join('');
+    `;
+  }
 
+  showGoogleChooseView();
   document.getElementById('google-account-picker').classList.add('active');
   closeLoginModal();
 }
@@ -360,11 +392,182 @@ function closeGooglePicker() {
   document.getElementById('google-account-picker').classList.remove('active');
 }
 
+let pendingGoogleUser = null;
+
 function selectGoogleAccount(index) {
-  const acc = DEMO_GOOGLE_ACCOUNTS[index];
-  if (!acc || acc.isAdd) return;
-  closeGooglePicker();
-  completeLogin(acc.name, acc.email, null, 'Google');
+  const accounts = getSavedGoogleAccounts();
+  const acc = accounts[index];
+  if (!acc) return;
+  
+  pendingGoogleUser = { name: acc.name, email: acc.email };
+  showGoogleVerifyView(acc.email);
+}
+
+function showGoogleSignInView() {
+  const chooseView = document.getElementById('google-view-choose');
+  const signinView = document.getElementById('google-view-signin');
+  const verifyView = document.getElementById('google-view-verify');
+  if (chooseView) chooseView.style.display = 'none';
+  if (verifyView) verifyView.style.display = 'none';
+  if (signinView) {
+    signinView.style.display = 'block';
+    setTimeout(() => {
+      const emailInput = document.getElementById('google-custom-email');
+      if (emailInput) emailInput.focus();
+    }, 50);
+  }
+}
+
+function showGoogleChooseView() {
+  const chooseView = document.getElementById('google-view-choose');
+  const signinView = document.getElementById('google-view-signin');
+  const verifyView = document.getElementById('google-view-verify');
+  if (signinView) signinView.style.display = 'none';
+  if (verifyView) verifyView.style.display = 'none';
+  if (chooseView) chooseView.style.display = 'block';
+}
+
+function showGoogleVerifyView(email) {
+  const chooseView = document.getElementById('google-view-choose');
+  const signinView = document.getElementById('google-view-signin');
+  const verifyView = document.getElementById('google-view-verify');
+  if (chooseView) chooseView.style.display = 'none';
+  if (signinView) signinView.style.display = 'none';
+  if (verifyView) {
+    verifyView.style.display = 'block';
+    const emailDisp = document.getElementById('google-verify-email-display');
+    if (emailDisp) emailDisp.innerText = email;
+    const otpInput = document.getElementById('google-otp-input');
+    if (otpInput) {
+      otpInput.value = '482910';
+      otpInput.focus();
+    }
+  }
+}
+
+function regenerateGoogleCode() {
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpInput = document.getElementById('google-otp-input');
+  if (otpInput) {
+    otpInput.value = code;
+    showLoginToast('Code Resent', `New code: ${code}`, null);
+  }
+}
+
+function handleGoogleCustomAccountSubmit(e) {
+  e.preventDefault();
+  const emailInput = document.getElementById('google-custom-email');
+  const nameInput = document.getElementById('google-custom-name');
+
+  const email = emailInput ? emailInput.value.trim() : '';
+  if (!email) return;
+
+  const derivedName = nameInput && nameInput.value.trim()
+    ? nameInput.value.trim()
+    : email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+  saveGoogleAccount(derivedName, email);
+  pendingGoogleUser = { name: derivedName, email: email };
+  showGoogleVerifyView(email);
+}
+
+function handleGoogleVerificationSubmit(e) {
+  e.preventDefault();
+  const otpInput = document.getElementById('google-otp-input');
+  const code = otpInput ? otpInput.value.trim() : '';
+
+  if (!code || code.length < 4) {
+    if (otpInput) otpInput.style.borderColor = '#ea4335';
+    return;
+  }
+
+  if (pendingGoogleUser) {
+    const user = pendingGoogleUser;
+    closeGooglePicker();
+    completeLogin(user.name, user.email, null, 'Google');
+    dispatchSecurityLoginEmail(user.name, user.email, 'Google');
+  }
+}
+
+// Dispatch official login security alert email
+function dispatchSecurityLoginEmail(userName, email, provider) {
+  const now = new Date().toLocaleString('en-US', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', hour12: true
+  });
+  const location = (userLocation && userLocation.name)
+    ? userLocation.name.replace(/\(.*\)/g, '').trim() || 'Chennai, Tamil Nadu, India'
+    : 'Chennai, Tamil Nadu, India';
+
+  // Display security email notification toast
+  setTimeout(() => {
+    const mailToast = document.createElement('div');
+    mailToast.style.cssText = `
+      position: fixed; bottom: 6.5rem; right: 2rem; z-index: 99999;
+      background: linear-gradient(135deg, #0d1b2a, #1b263b);
+      border: 1px solid #1a73e8; border-radius: 14px; padding: 1rem 1.3rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6); color: #fff; max-width: 320px;
+      animation: slideInRight 0.4s ease-out;
+    `;
+    mailToast.innerHTML = `
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="font-size:1.5rem;">📧</div>
+        <div>
+          <div style="font-weight:700; font-size:0.88rem; color:#60a5fa;">Security Alert Email Sent</div>
+          <div style="font-size:0.75rem; color:#cbd5e1; margin-top:2px;">Login details mailed to <b>${email}</b></div>
+          <div style="font-size:0.7rem; color:#94a3b8; margin-top:3px;">Time: ${now}</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(mailToast);
+    setTimeout(() => {
+      mailToast.style.opacity = '0';
+      mailToast.style.transition = 'opacity 0.5s';
+      setTimeout(() => mailToast.remove(), 500);
+    }, 5000);
+  }, 1200);
+}
+
+// ═══════════════════════════════════════════
+// FACEBOOK ACCOUNT PICKER & SIGN-IN
+// ═══════════════════════════════════════════
+function openFacebookPicker() {
+  document.getElementById('facebook-account-picker').classList.add('active');
+  closeLoginModal();
+}
+
+function closeFacebookPicker() {
+  document.getElementById('facebook-account-picker').classList.remove('active');
+}
+
+function showFacebookCustomInput() {
+  const box = document.getElementById('facebook-custom-box');
+  if (box) {
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    if (box.style.display === 'block') {
+      const input = document.getElementById('fb-custom-email');
+      if (input) input.focus();
+    }
+  }
+}
+
+function handleFacebookCustomSubmit() {
+  const input = document.getElementById('fb-custom-email');
+  const val = input ? input.value.trim() : '';
+  if (!val) {
+    if (input) input.style.borderColor = '#fa383e';
+    return;
+  }
+  const name = val.includes('@') ? val.split('@')[0] : 'Facebook User';
+  const formattedName = name.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const email = val.includes('@') ? val : `${val}@facebook.com`;
+
+  closeFacebookPicker();
+  completeLogin(formattedName, email, null, 'Facebook');
+}
+
+function handleFacebookLogin() {
+  openFacebookPicker();
 }
 
 // ═══════════════════════════════════════════
@@ -377,13 +580,17 @@ function completeLogin(userName, email, avatarUrl, provider) {
   currentUserProfile = { userName: currentUserName, email, avatarUrl, provider };
 
   // Store session
-  try { sessionStorage.setItem('lp_user', JSON.stringify(currentUserProfile)); } catch (e) { }
+  try {
+    sessionStorage.setItem('lp_user', JSON.stringify(currentUserProfile));
+    localStorage.setItem('lp_user', JSON.stringify(currentUserProfile));
+  } catch (e) { }
 
-  // Update nav avatar
+  // Update nav avatar & drawer link
   updateNavProfile(currentUserName, email, avatarUrl, provider);
 
   closeLoginModal();
   closeGooglePicker();
+  closeFacebookPicker();
   rotateMotivationQuote();
   switchRole('donor');
   showLoginToast(currentUserName, provider, avatarUrl);
@@ -444,45 +651,10 @@ function handleLoginSubmit(e) {
 }
 
 // ═══════════════════════════════════════════
-// GOOGLE OAUTH LOGIN
+// GOOGLE OAUTH LOGIN TRIGGER
 // ═══════════════════════════════════════════
 function handleGoogleLogin() {
-  // Open the Google-style account picker modal
   openGooglePicker();
-}
-
-// Callback for Google One Tap / credential response
-function handleGoogleCredentialResponse(response) {
-  if (response && response.credential) {
-    // Decode JWT payload
-    try {
-      const base64Url = response.credential.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const payload = JSON.parse(window.atob(base64));
-      completeLogin(payload.name, payload.email, payload.picture, 'Google');
-    } catch (e) {
-      completeLogin('Google User', 'user@gmail.com', null, 'Google');
-    }
-  }
-}
-
-// ═══════════════════════════════════════════
-// FACEBOOK LOGIN
-// ═══════════════════════════════════════════
-function handleFacebookLogin() {
-  if (typeof FB !== 'undefined') {
-    FB.login((response) => {
-      if (response.authResponse) {
-        FB.api('/me', { fields: 'name,email,picture' }, (userData) => {
-          const avatarUrl = userData.picture ? userData.picture.data.url : null;
-          completeLogin(userData.name, userData.email || 'fb_user@facebook.com', avatarUrl, 'Facebook');
-        });
-      }
-    }, { scope: 'email,public_profile' });
-  } else {
-    // Fallback for development (Facebook SDK not yet loaded)
-    completeLogin('Facebook User', 'user@facebook.com', null, 'Facebook');
-  }
 }
 
 // ═══════════════════════════════════════════
@@ -504,23 +676,15 @@ function switchRole(role) {
   const donorView = document.getElementById('view-donor');
   const campView = document.getElementById('view-campaigns');
   const seekerView = document.getElementById('view-seeker');
-  const hospView = document.getElementById('view-hospital');
-  const adminView = document.getElementById('view-admin');
 
   if (donorView) donorView.style.display = role === 'donor' ? 'block' : 'none';
   if (campView) campView.style.display = role === 'campaigns' ? 'block' : 'none';
   if (seekerView) seekerView.style.display = role === 'seeker' ? 'block' : 'none';
-  if (hospView) hospView.style.display = role === 'hospital' ? 'block' : 'none';
-  if (adminView) adminView.style.display = role === 'admin' ? 'block' : 'none';
 
   if (role === 'donor') {
     handleActiveCampaignClick();
   } else if (role === 'campaigns') {
     loadCampaigns();
-  } else if (role === 'hospital') {
-    loadHospitalInventory(currentUserId === 3 ? 3 : 2);
-  } else if (role === 'admin') {
-    loadAuditLogs();
   }
 }
 

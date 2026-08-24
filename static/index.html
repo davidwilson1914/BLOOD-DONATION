@@ -138,8 +138,6 @@
       <div class="drawer-link" onclick="selectMenuItem('campaigns')">Active Campaigns</div>
       <div class="drawer-link drawer-link-active" onclick="selectMenuItem('donor')">Blood Donator</div>
       <div class="drawer-link" onclick="selectMenuItem('seeker')">Blood Seeker / Patient</div>
-      <div class="drawer-link" onclick="selectMenuItem('hospital')">Hospital Inventory</div>
-      <div class="drawer-link" onclick="selectMenuItem('admin')">Admin Control</div>
       <div class="drawer-link" onclick="selectMenuItem('login')" id="drawer-login-text">Login & Account</div>
     </div>
   </div>
@@ -527,72 +525,59 @@
         </div>
       </div>
 
-      <!-- HOSPITAL VIEW PANEL -->
-      <div id="view-hospital" class="glass-panel" style="padding: 1.5rem; display: none;">
-        <div class="panel-header">
-          <h2 class="panel-title"><span>🏥</span> Hospital Blood Bank Inventory</h2>
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Mount Sinai Hospital</span>
-        </div>
-
-        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
-          Stock levels automatically trigger urgent donor dispatch alerts when dropping below threshold.
-        </p>
-
-        <table class="inv-table">
-          <thead>
-            <tr>
-              <th>Blood Group</th>
-              <th>Available Units</th>
-              <th>Threshold</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="inventory-table-body">
-            <!-- Dynamically populated -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- ADMIN CONTROL PANEL -->
-      <div id="view-admin" class="glass-panel" style="padding: 1.5rem; display: none;">
-        <div class="panel-header">
-          <h2 class="panel-title"><span>🛡️</span> HIPAA / GDPR Audit Logs</h2>
-          <button
-            style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); color: var(--text-main); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.78rem;"
-            onclick="loadAuditLogs()">Refresh Logs</button>
-        </div>
-
-        <div style="max-height: 380px; overflow-y: auto;">
-          <table class="inv-table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>User / Role</th>
-                <th>Action</th>
-                <th>Resource</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody id="audit-log-body">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
     </section>
 
   </main>
 
   <!-- ══════════════════════════════════════════════
-       Google Account Picker Modal (Realistic UI)
+       Google Account Picker & Sign-in Modal (Realistic UI)
   ══════════════════════════════════════════════ -->
   <div class="modal-overlay" id="google-account-picker" style="z-index:10000;" onclick="if(event.target===this)closeGooglePicker()">
-    <div style="background:#fff; border-radius:20px; padding:0; width:380px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.5); overflow:hidden; animation:scaleIn 0.25s ease-out;">
-      <!-- Google Header -->
-      <div style="padding:24px 24px 16px; border-bottom:1px solid #e8eaed;">
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+    <div style="background:#fff; border-radius:24px; padding:0; width:410px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.6); overflow:hidden; animation:scaleIn 0.25s ease-out; font-family:'Google Sans',Roboto,Arial,sans-serif;">
+      
+      <!-- VIEW 1: Choose Account Screen -->
+      <div id="google-view-choose">
+        <div style="padding:28px 28px 16px; border-bottom:1px solid #e8eaed;">
+          <div style="margin-bottom:12px;">
+            <svg width="74" height="24" viewBox="0 0 74 24">
+              <path d="M9.24 8.19v2.46h5.88c-.18 1.38-.64 2.39-1.34 3.1-.86.86-2.2 1.8-4.54 1.8-3.62 0-6.45-2.92-6.45-6.54s2.83-6.54 6.45-6.54c1.95 0 3.38.77 4.43 1.76L15.4 2.5C13.94 1.08 11.98 0 9.24 0 4.28 0 .11 4.04.11 9s4.17 9 9.13 9c2.68 0 4.7-.88 6.28-2.52 1.62-1.62 2.13-3.91 2.13-5.75 0-.57-.04-1.1-.13-1.54H9.24z" fill="#4285F4"/>
+              <path d="M25 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#EA4335"/>
+              <path d="M53.58 7.49h-.09c-.57-.68-1.67-1.3-3.06-1.3C47.53 6.19 45 8.72 45 12c0 3.26 2.53 5.81 5.43 5.81 1.39 0 2.49-.62 3.06-1.32h.09v.81c0 2.22-1.19 3.4-3.1 3.4-1.56 0-2.53-1.12-2.93-2.07l-2.22.92c.64 1.54 2.33 3.43 5.15 3.43 2.99 0 5.52-1.76 5.52-6.05V6.49h-2.42v1zm-2.93 8.03c-1.76 0-3.1-1.5-3.1-3.52 0-2.05 1.34-3.52 3.1-3.52 1.74 0 3.1 1.49 3.1 3.54.01 2.03-1.36 3.5-3.1 3.5z" fill="#4285F4"/>
+              <path d="M38 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#FBBC05"/>
+              <path d="M58.93 1h2.54v16.76h-2.54z" fill="#34A853"/>
+              <path d="M63.86 12.44c-.14-.39-.57-1.11-.91-1.44l7.5-3.1c.39.99.57 1.58.57 2.1 0 1.21-.47 2.27-1.23 3.05l-5.93-.61z" fill="#EA4335"/>
+            </svg>
+          </div>
+          <div style="font-size:20px; color:#202124; font-weight:500;">Choose an account</div>
+          <div style="font-size:14px; color:#5f6368; margin-top:4px;">to continue to <span style="color:#202124; font-weight:500;">LifePulse</span></div>
+        </div>
+
+        <!-- Saved / Stored Accounts List -->
+        <div style="padding:6px 0;" id="google-accounts-list">
+          <!-- Dynamic accounts inserted here -->
+        </div>
+
+        <!-- Add Another Account Button -->
+        <div style="padding:14px 24px; border-top:1px solid #e8eaed;">
+          <button type="button" onclick="showGoogleSignInView()" style="width:100%; background:none; border:1px solid #dadce0; border-radius:24px; padding:10px 16px; font-size:14px; color:#1a73e8; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+            <span>+ Use another account</span>
+          </button>
+        </div>
+
+        <!-- Footer -->
+        <div style="background:#f8f9fa; padding:12px 24px; display:flex; justify-content:space-between; font-size:11px; color:#5f6368; border-top:1px solid #f1f3f4;">
+          <span>English (United States)</span>
+          <div style="display:flex; gap:12px;">
+            <a href="#" style="color:#5f6368; text-decoration:none;">Help</a>
+            <a href="#" style="color:#5f6368; text-decoration:none;">Privacy</a>
+            <a href="#" style="color:#5f6368; text-decoration:none;">Terms</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: Google Sign-in Email/Pass Form -->
+      <div id="google-view-signin" style="display:none; padding:28px 28px 20px;">
+        <div style="margin-bottom:16px;">
           <svg width="74" height="24" viewBox="0 0 74 24">
             <path d="M9.24 8.19v2.46h5.88c-.18 1.38-.64 2.39-1.34 3.1-.86.86-2.2 1.8-4.54 1.8-3.62 0-6.45-2.92-6.45-6.54s2.83-6.54 6.45-6.54c1.95 0 3.38.77 4.43 1.76L15.4 2.5C13.94 1.08 11.98 0 9.24 0 4.28 0 .11 4.04.11 9s4.17 9 9.13 9c2.68 0 4.7-.88 6.28-2.52 1.62-1.62 2.13-3.91 2.13-5.75 0-.57-.04-1.1-.13-1.54H9.24z" fill="#4285F4"/>
             <path d="M25 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#EA4335"/>
@@ -602,28 +587,136 @@
             <path d="M63.86 12.44c-.14-.39-.57-1.11-.91-1.44l7.5-3.1c.39.99.57 1.58.57 2.1 0 1.21-.47 2.27-1.23 3.05l-5.93-.61z" fill="#EA4335"/>
           </svg>
         </div>
-        <div style="font-family:'Google Sans',sans-serif; font-size:16px; color:#202124; font-weight:500;">Sign in with Google</div>
-        <div style="font-size:13px; color:#5f6368; margin-top:4px;">to continue to LifePulse</div>
+        
+        <div style="font-size:22px; color:#202124; font-weight:500; margin-bottom:4px;">Sign in</div>
+        <div style="font-size:14px; color:#5f6368; margin-bottom:24px;">to continue to <span style="color:#202124; font-weight:500;">LifePulse</span></div>
+
+        <form id="google-signin-form" onsubmit="handleGoogleCustomAccountSubmit(event)">
+          <div style="margin-bottom:18px;">
+            <label style="display:block; font-size:12px; color:#1a73e8; font-weight:600; margin-bottom:4px;">Email or phone *</label>
+            <input type="text" id="google-custom-email" required placeholder="e.g. yourname@gmail.com"
+              style="width:100%; padding:13px 14px; border:2px solid #1a73e8; border-radius:6px; font-size:15px; color:#202124; outline:none; box-sizing:border-box;" />
+          </div>
+
+          <div style="margin-bottom:18px;">
+            <label style="display:block; font-size:12px; color:#5f6368; margin-bottom:4px;">Full Name (optional)</label>
+            <input type="text" id="google-custom-name" placeholder="e.g. John Doe"
+              style="width:100%; padding:13px 14px; border:1px solid #dadce0; border-radius:6px; font-size:15px; color:#202124; outline:none; box-sizing:border-box;" />
+          </div>
+
+          <div style="font-size:13px; color:#5f6368; margin-bottom:28px; line-height:1.4;">
+            Not your computer? Use a private window to sign in securely. <a href="#" style="color:#1a73e8; text-decoration:none; font-weight:500;">Learn more</a>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button type="button" onclick="showGoogleChooseView()" style="background:none; border:none; color:#1a73e8; font-size:14px; font-weight:600; cursor:pointer; padding:8px 0;">
+              ← Back to accounts
+            </button>
+            <button type="submit" style="background:#1a73e8; color:#fff; border:none; border-radius:24px; padding:10px 24px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition:background 0.2s;" onmouseover="this.style.background='#1557b0'" onmouseout="this.style.background='#1a73e8'">
+              Next
+            </button>
+          </div>
+        </form>
       </div>
 
-      <!-- Account List -->
-      <div style="padding:8px 0;" id="google-accounts-list">
-        <!-- Accounts injected by JS -->
+      <!-- VIEW 3: Google 2-Step Verification Code Screen -->
+      <div id="google-view-verify" style="display:none; padding:28px 28px 22px;">
+        <div style="margin-bottom:14px;">
+          <svg width="74" height="24" viewBox="0 0 74 24">
+            <path d="M9.24 8.19v2.46h5.88c-.18 1.38-.64 2.39-1.34 3.1-.86.86-2.2 1.8-4.54 1.8-3.62 0-6.45-2.92-6.45-6.54s2.83-6.54 6.45-6.54c1.95 0 3.38.77 4.43 1.76L15.4 2.5C13.94 1.08 11.98 0 9.24 0 4.28 0 .11 4.04.11 9s4.17 9 9.13 9c2.68 0 4.7-.88 6.28-2.52 1.62-1.62 2.13-3.91 2.13-5.75 0-.57-.04-1.1-.13-1.54H9.24z" fill="#4285F4"/>
+            <path d="M25 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#EA4335"/>
+            <path d="M53.58 7.49h-.09c-.57-.68-1.67-1.3-3.06-1.3C47.53 6.19 45 8.72 45 12c0 3.26 2.53 5.81 5.43 5.81 1.39 0 2.49-.62 3.06-1.32h.09v.81c0 2.22-1.19 3.4-3.1 3.4-1.56 0-2.53-1.12-2.93-2.07l-2.22.92c.64 1.54 2.33 3.43 5.15 3.43 2.99 0 5.52-1.76 5.52-6.05V6.49h-2.42v1zm-2.93 8.03c-1.76 0-3.1-1.5-3.1-3.52 0-2.05 1.34-3.52 3.1-3.52 1.74 0 3.1 1.49 3.1 3.54.01 2.03-1.36 3.5-3.1 3.5z" fill="#4285F4"/>
+            <path d="M38 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#FBBC05"/>
+            <path d="M58.93 1h2.54v16.76h-2.54z" fill="#34A853"/>
+            <path d="M63.86 12.44c-.14-.39-.57-1.11-.91-1.44l7.5-3.1c.39.99.57 1.58.57 2.1 0 1.21-.47 2.27-1.23 3.05l-5.93-.61z" fill="#EA4335"/>
+          </svg>
+        </div>
+        
+        <div style="font-size:22px; color:#202124; font-weight:500; margin-bottom:4px;">2-Step Verification</div>
+        <div style="font-size:13px; color:#5f6368; margin-bottom:16px; line-height:1.45;">
+          To help protect your account, Google wants to make sure it's really you. A 6-digit verification code has been sent to <b id="google-verify-email-display" style="color:#202124;">user@gmail.com</b>.
+        </div>
+
+        <form id="google-verify-form" onsubmit="handleGoogleVerificationSubmit(event)">
+          <div style="background:#f8f9fa; border:1px solid #dadce0; border-radius:10px; padding:14px; margin-bottom:18px; text-align:center;">
+            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#5f6368; font-weight:600; margin-bottom:6px;">Enter 6-digit code</div>
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+              <span style="font-size:18px; font-weight:700; color:#5f6368;">G -</span>
+              <input type="text" id="google-otp-input" maxlength="6" value="482910" required
+                style="width:160px; padding:8px 12px; font-size:20px; font-weight:700; letter-spacing:4px; text-align:center; border:2px solid #1a73e8; border-radius:6px; outline:none; color:#1a73e8;" />
+            </div>
+            <div style="font-size:11px; color:#10b981; font-weight:600; margin-top:6px;">✓ Auto-generated verification code ready</div>
+          </div>
+
+          <div style="font-size:12px; color:#5f6368; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center;">
+            <span>Didn't receive code?</span>
+            <button type="button" onclick="regenerateGoogleCode()" style="background:none; border:none; color:#1a73e8; font-weight:600; font-size:12px; cursor:pointer;">Resend code</button>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button type="button" onclick="showGoogleChooseView()" style="background:none; border:none; color:#1a73e8; font-size:14px; font-weight:600; cursor:pointer; padding:8px 0;">
+              ← Back
+            </button>
+            <button type="submit" style="background:#1a73e8; color:#fff; border:none; border-radius:24px; padding:10px 24px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition:background 0.2s;" onmouseover="this.style.background='#1557b0'" onmouseout="this.style.background='#1a73e8'">
+              Verify & Sign In
+            </button>
+          </div>
+        </form>
       </div>
 
-      <!-- Use another account -->
-      <div style="padding:12px 24px; border-top:1px solid #e8eaed;">
-        <button onclick="closeGooglePicker()" style="width:100%; background:none; border:1px solid #dadce0; border-radius:24px; padding:10px; font-size:14px; color:#1a73e8; font-weight:500; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
-          Use another account
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       Facebook Account Picker & Sign-in Modal (Realistic UI)
+  ══════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="facebook-account-picker" style="z-index:10000;" onclick="if(event.target===this)closeFacebookPicker()">
+    <div style="background:#fff; border-radius:20px; padding:0; width:400px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.6); overflow:hidden; animation:scaleIn 0.25s ease-out; font-family:Helvetica, Arial, sans-serif;">
+      
+      <!-- Facebook Header -->
+      <div style="background:#1877f2; padding:18px 24px; color:#fff; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#ffffff">
+            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+          </svg>
+          <span style="font-weight:700; font-size:18px;">facebook</span>
+        </div>
+        <button onclick="closeFacebookPicker()" style="background:none; border:none; color:#fff; font-size:22px; cursor:pointer;">&times;</button>
+      </div>
+
+      <div style="padding:24px;">
+        <div style="font-size:16px; color:#1c1e21; font-weight:600; margin-bottom:6px;">Log in with Facebook</div>
+        <div style="font-size:13px; color:#606770; margin-bottom:20px;">LifePulse is requesting access to your name and email address.</div>
+
+        <!-- Quick One-Click Suggested Profile -->
+        <div style="background:#f0f2f5; border-radius:12px; padding:12px 14px; display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+          <div style="width:44px; height:44px; border-radius:50%; background:#1877f2; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.2rem;">
+            D
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size:14px; color:#1c1e21;">David Wilson</div>
+            <div style="font-size:12px; color:#606770;">davidwilson1914@facebook.com</div>
+          </div>
+        </div>
+
+        <button type="button" onclick="completeLogin('David Wilson', 'davidwilson1914@facebook.com', null, 'Facebook'); closeFacebookPicker();"
+          style="width:100%; background:#1877f2; color:#fff; border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:12px; transition:background 0.2s;" onmouseover="this.style.background='#166fe5'" onmouseout="this.style.background='#1877f2'">
+          Continue as David
         </button>
+
+        <button type="button" onclick="showFacebookCustomInput()" style="width:100%; background:#e4e6eb; color:#050505; border:none; border-radius:8px; padding:10px; font-size:14px; font-weight:600; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#d8dadf'" onmouseout="this.style.background='#e4e6eb'">
+          Log into another account
+        </button>
+
+        <!-- Hidden custom Facebook login inputs -->
+        <div id="facebook-custom-box" style="display:none; margin-top:16px; border-top:1px solid #dadde1; padding-top:16px;">
+          <input type="text" id="fb-custom-email" placeholder="Mobile number or email" style="width:100%; padding:10px; border:1px solid #ccd0d5; border-radius:6px; font-size:14px; margin-bottom:10px; box-sizing:border-box;" />
+          <button type="button" onclick="handleFacebookCustomSubmit()" style="width:100%; background:#42b72a; color:#fff; border:none; border-radius:6px; padding:10px; font-weight:700; font-size:14px; cursor:pointer;">
+            Log In
+          </button>
+        </div>
       </div>
 
-      <!-- Footer -->
-      <div style="background:#f8f9fa; padding:12px 24px; display:flex; justify-content:space-between; font-size:11px; color:#5f6368;">
-        <a href="#" style="color:#5f6368; text-decoration:none;">Privacy Policy</a>
-        <span>•</span>
-        <a href="#" style="color:#5f6368; text-decoration:none;">Terms of Service</a>
-      </div>
     </div>
   </div>
 
