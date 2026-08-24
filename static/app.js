@@ -324,20 +324,20 @@ function handleLogout() {
 
 // ═══════════════════════════════════════════
 // GOOGLE ACCOUNT PICKER & MULTI-ACCOUNT MANAGEMENT
+// (Only suggests accounts previously used on this device)
 // ═══════════════════════════════════════════
-const DEFAULT_GOOGLE_ACCOUNTS = [
-  { name: 'David Wilson', email: 'davidwilson1914@gmail.com', initials: 'D', color: '#4285F4' }
-];
-
 function getSavedGoogleAccounts() {
   try {
     const saved = localStorage.getItem('lp_saved_google_accounts');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) {
+        // Filter out legacy hardcoded accounts if any
+        return parsed.filter(a => a && a.email && a.email !== 'davidwilson1914@gmail.com');
+      }
     }
   } catch (e) {}
-  return [...DEFAULT_GOOGLE_ACCOUNTS];
+  return [];
 }
 
 function saveGoogleAccount(name, email) {
@@ -357,6 +357,16 @@ function saveGoogleAccount(name, email) {
 function openGooglePicker() {
   const accounts = getSavedGoogleAccounts();
   const list = document.getElementById('google-accounts-list');
+
+  // If user has NO previously saved accounts on this device, directly show Google Sign-In input
+  if (accounts.length === 0) {
+    showGoogleSignInView();
+    document.getElementById('google-account-picker').classList.add('active');
+    closeLoginModal();
+    return;
+  }
+
+  // If user previously logged in with accounts on this device, show the suggestion list
   if (list) {
     list.innerHTML = accounts.map((acc, i) => `
       <div onclick="selectGoogleAccount(${i})"
@@ -413,7 +423,10 @@ function showGoogleSignInView() {
     signinView.style.display = 'block';
     setTimeout(() => {
       const emailInput = document.getElementById('google-custom-email');
-      if (emailInput) emailInput.focus();
+      if (emailInput) {
+        emailInput.value = '';
+        emailInput.focus();
+      }
     }, 50);
   }
 }
@@ -531,7 +544,62 @@ function dispatchSecurityLoginEmail(userName, email, provider) {
 // ═══════════════════════════════════════════
 // FACEBOOK ACCOUNT PICKER & SIGN-IN
 // ═══════════════════════════════════════════
+function getSavedFacebookAccounts() {
+  try {
+    const saved = localStorage.getItem('lp_saved_fb_accounts');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(a => a && a.email && a.email !== 'davidwilson1914@facebook.com');
+      }
+    }
+  } catch (e) {}
+  return [];
+}
+
+function saveFacebookAccount(name, email) {
+  try {
+    const accounts = getSavedFacebookAccounts();
+    const existing = accounts.find(a => a.email.toLowerCase() === email.toLowerCase());
+    if (!existing) {
+      accounts.push({ name: name || email.split('@')[0], email });
+      localStorage.setItem('lp_saved_fb_accounts', JSON.stringify(accounts));
+    }
+  } catch (e) {}
+}
+
 function openFacebookPicker() {
+  const fbAccounts = getSavedFacebookAccounts();
+  const suggestedBox = document.getElementById('facebook-suggested-box');
+  const customBox = document.getElementById('facebook-custom-box');
+
+  if (fbAccounts.length > 0 && suggestedBox) {
+    const acc = fbAccounts[0];
+    suggestedBox.innerHTML = `
+      <div style="background:#f0f2f5; border-radius:12px; padding:12px 14px; display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <div style="width:44px; height:44px; border-radius:50%; background:#1877f2; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.2rem;">
+          ${acc.name.charAt(0).toUpperCase()}
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:700; font-size:14px; color:#1c1e21;">${acc.name}</div>
+          <div style="font-size:12px; color:#606770;">${acc.email}</div>
+        </div>
+      </div>
+      <button type="button" onclick="completeLogin('${acc.name}', '${acc.email}', null, 'Facebook'); closeFacebookPicker();"
+        style="width:100%; background:#1877f2; color:#fff; border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:12px; transition:background 0.2s;" onmouseover="this.style.background='#166fe5'" onmouseout="this.style.background='#1877f2'">
+        Continue as ${acc.name.split(' ')[0]}
+      </button>
+      <button type="button" onclick="showFacebookCustomInput()" style="width:100%; background:#e4e6eb; color:#050505; border:none; border-radius:8px; padding:10px; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:14px;">
+        Log into another account
+      </button>
+    `;
+    suggestedBox.style.display = 'block';
+    if (customBox) customBox.style.display = 'none';
+  } else {
+    if (suggestedBox) suggestedBox.style.display = 'none';
+    if (customBox) customBox.style.display = 'block';
+  }
+
   document.getElementById('facebook-account-picker').classList.add('active');
   closeLoginModal();
 }
@@ -543,25 +611,27 @@ function closeFacebookPicker() {
 function showFacebookCustomInput() {
   const box = document.getElementById('facebook-custom-box');
   if (box) {
-    box.style.display = box.style.display === 'none' ? 'block' : 'none';
-    if (box.style.display === 'block') {
-      const input = document.getElementById('fb-custom-email');
-      if (input) input.focus();
-    }
+    box.style.display = 'block';
+    const input = document.getElementById('fb-custom-email');
+    if (input) input.focus();
   }
 }
 
 function handleFacebookCustomSubmit() {
   const input = document.getElementById('fb-custom-email');
+  const nameInput = document.getElementById('fb-custom-name');
   const val = input ? input.value.trim() : '';
   if (!val) {
     if (input) input.style.borderColor = '#fa383e';
     return;
   }
-  const name = val.includes('@') ? val.split('@')[0] : 'Facebook User';
+  const name = nameInput && nameInput.value.trim()
+    ? nameInput.value.trim()
+    : val.includes('@') ? val.split('@')[0] : 'Facebook User';
   const formattedName = name.replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   const email = val.includes('@') ? val : `${val}@facebook.com`;
 
+  saveFacebookAccount(formattedName, email);
   closeFacebookPicker();
   completeLogin(formattedName, email, null, 'Facebook');
 }
@@ -837,6 +907,12 @@ async function handleHeroCampaignSubmit(event) {
 
     document.getElementById('hero-campaign-form').reset();
 
+    // Broadcast toast to notify other active users
+    showBroadcastToast(
+      `📢 New Campaign: ${title}`,
+      `${organizer} just published a blood drive at ${location}. Join now!`
+    );
+
     // Real-Time Alert & Broadcast Notification
     alert(`🎉 CAMPAIGN PUBLISHED & BROADCAST NOTIFICATION DISPATCHED!\n\n📢 Campaign: "${title}"\n🏥 Conducted by: ${organizer}\n📞 Contact Phone: ${phone}\n📍 Location: ${location}\n⏰ Operating Window: ${startFormatted} to ${endFormatted}\n\n📲 Push & SMS Notification alerts have been dispatched live to network donors across Tamil Nadu!`);
 
@@ -1010,6 +1086,12 @@ async function handleHeroDonorRegisterSubmit(event) {
     // Reset Form
     document.getElementById('hero-donor-reg-form').reset();
 
+    // Show broadcast push toast to notify other logged-in users
+    showBroadcastToast(
+      `🩸 New ${bloodType} Donor Registered!`,
+      `${name} just joined from ${city || 'your area'}. Available for emergency matching.`
+    );
+
     // Alert user
     alert(`🎉 DONOR REGISTRATION SUCCESSFUL!\n\nThank you, ${name}! Your profile with blood group ${bloodType} is now live.\n\nRedirecting to "Blood Seeker / Patient" view below the blood request bar to show your live registered profile.`);
 
@@ -1017,6 +1099,7 @@ async function handleHeroDonorRegisterSubmit(event) {
     switchRole('seeker');
     renderRegisteredDonors();
     loadAnalytics();
+    loadNotifications();
 
     // Smooth scroll to registered donor directory
     setTimeout(() => {
@@ -1039,6 +1122,10 @@ async function handleHeroDonorRegisterSubmit(event) {
     };
     activeDonors.unshift(newDonor);
     document.getElementById('hero-donor-reg-form').reset();
+    showBroadcastToast(
+      `🩸 New ${bloodType} Donor Registered!`,
+      `${name} just joined from ${city || 'your area'}. Available for emergency matching.`
+    );
     alert(`🎉 DONOR REGISTRATION SUCCESSFUL!\n\nThank you, ${name}! Your profile with blood group ${bloodType} is now live.`);
     switchRole('seeker');
     renderRegisteredDonors();
@@ -1611,4 +1698,58 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }
   } catch (e) { }
+
+  // Auto-clean legacy hardcoded demo accounts (David Wilson) from any stored device data
+  try {
+    const LEGACY_EMAILS = ['davidwilson1914@gmail.com', 'davidwilson1914@facebook.com'];
+    const savedGoogle = localStorage.getItem('lp_saved_google_accounts');
+    if (savedGoogle) {
+      const parsed = JSON.parse(savedGoogle);
+      const cleaned = parsed.filter(a => a && a.email && !LEGACY_EMAILS.includes(a.email));
+      localStorage.setItem('lp_saved_google_accounts', JSON.stringify(cleaned));
+    }
+    const savedFb = localStorage.getItem('lp_saved_fb_accounts');
+    if (savedFb) {
+      const parsedFb = JSON.parse(savedFb);
+      const cleanedFb = parsedFb.filter(a => a && a.email && !LEGACY_EMAILS.includes(a.email));
+      localStorage.setItem('lp_saved_fb_accounts', JSON.stringify(cleanedFb));
+    }
+  } catch (e) {}
 });
+
+// ═══════════════════════════════════════════
+// BROADCAST TOAST — shows live update alerts to other logged-in users
+// ═══════════════════════════════════════════
+function showBroadcastToast(title, message) {
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed; top: 5rem; right: 1.5rem; z-index: 99999;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    border: 1.5px solid rgba(230,57,70,0.6);
+    border-left: 4px solid #e63946;
+    border-radius: 14px;
+    padding: 0.9rem 1.2rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+    color: #fff;
+    max-width: 310px;
+    animation: slideInRight 0.4s ease-out;
+    cursor: pointer;
+  `;
+  toast.innerHTML = `
+    <div style="display:flex; align-items:flex-start; gap:10px;">
+      <div style="font-size:1.4rem; margin-top:2px;">🔔</div>
+      <div style="flex:1;">
+        <div style="font-weight:800; font-size:0.875rem; color:#f87171; margin-bottom:2px;">${title}</div>
+        <div style="font-size:0.78rem; color:#cbd5e1; line-height:1.4;">${message}</div>
+        <div style="font-size:0.68rem; color:#64748b; margin-top:5px;">📡 Live Community Update · just now</div>
+      </div>
+      <div style="font-size:0.8rem; color:#475569; cursor:pointer;" onclick="this.closest('div[style]').remove()">✕</div>
+    </div>
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.6s';
+    setTimeout(() => toast.remove(), 600);
+  }, 6000);
+}

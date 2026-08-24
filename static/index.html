@@ -688,31 +688,21 @@
         <div style="font-size:16px; color:#1c1e21; font-weight:600; margin-bottom:6px;">Log in with Facebook</div>
         <div style="font-size:13px; color:#606770; margin-bottom:20px;">LifePulse is requesting access to your name and email address.</div>
 
-        <!-- Quick One-Click Suggested Profile -->
-        <div style="background:#f0f2f5; border-radius:12px; padding:12px 14px; display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-          <div style="width:44px; height:44px; border-radius:50%; background:#1877f2; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.2rem;">
-            D
+        <!-- Dynamic Suggested Profile Container (if logged in before) -->
+        <div id="facebook-suggested-box" style="display:none;"></div>
+
+        <!-- Facebook custom login inputs -->
+        <div id="facebook-custom-box">
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:12px; color:#606770; margin-bottom:4px; font-weight:600;">Mobile number or email</label>
+            <input type="text" id="fb-custom-email" placeholder="e.g. yourname@gmail.com" style="width:100%; padding:11px 12px; border:1px solid #ccd0d5; border-radius:6px; font-size:14px; box-sizing:border-box;" />
           </div>
-          <div style="flex:1;">
-            <div style="font-weight:700; font-size:14px; color:#1c1e21;">David Wilson</div>
-            <div style="font-size:12px; color:#606770;">davidwilson1914@facebook.com</div>
+          <div style="margin-bottom:16px;">
+            <label style="display:block; font-size:12px; color:#606770; margin-bottom:4px; font-weight:600;">Full Name (optional)</label>
+            <input type="text" id="fb-custom-name" placeholder="e.g. John Doe" style="width:100%; padding:11px 12px; border:1px solid #ccd0d5; border-radius:6px; font-size:14px; box-sizing:border-box;" />
           </div>
-        </div>
-
-        <button type="button" onclick="completeLogin('David Wilson', 'davidwilson1914@facebook.com', null, 'Facebook'); closeFacebookPicker();"
-          style="width:100%; background:#1877f2; color:#fff; border:none; border-radius:8px; padding:12px; font-size:15px; font-weight:700; cursor:pointer; margin-bottom:12px; transition:background 0.2s;" onmouseover="this.style.background='#166fe5'" onmouseout="this.style.background='#1877f2'">
-          Continue as David
-        </button>
-
-        <button type="button" onclick="showFacebookCustomInput()" style="width:100%; background:#e4e6eb; color:#050505; border:none; border-radius:8px; padding:10px; font-size:14px; font-weight:600; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#d8dadf'" onmouseout="this.style.background='#e4e6eb'">
-          Log into another account
-        </button>
-
-        <!-- Hidden custom Facebook login inputs -->
-        <div id="facebook-custom-box" style="display:none; margin-top:16px; border-top:1px solid #dadde1; padding-top:16px;">
-          <input type="text" id="fb-custom-email" placeholder="Mobile number or email" style="width:100%; padding:10px; border:1px solid #ccd0d5; border-radius:6px; font-size:14px; margin-bottom:10px; box-sizing:border-box;" />
-          <button type="button" onclick="handleFacebookCustomSubmit()" style="width:100%; background:#42b72a; color:#fff; border:none; border-radius:6px; padding:10px; font-weight:700; font-size:14px; cursor:pointer;">
-            Log In
+          <button type="button" onclick="handleFacebookCustomSubmit()" style="width:100%; background:#1877f2; color:#fff; border:none; border-radius:6px; padding:12px; font-weight:700; font-size:15px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#166fe5'" onmouseout="this.style.background='#1877f2'">
+            Log In with Facebook
           </button>
         </div>
       </div>
