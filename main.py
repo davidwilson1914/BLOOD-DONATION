@@ -528,6 +528,37 @@ def get_latest_notifications(since_id: int = Query(0), user_id: Optional[int] = 
     return {"notifications": new_ones, "latest_id": all_notifs[0].id if all_notifs else 0}
 
 
+@app.post("/api/requests/{request_id}/escalate")
+def escalate_blood_request(request_id: int):
+    """
+    Auto-escalation endpoint — called when no donor has accepted a request.
+    Broadcasts an escalated emergency notification to all connected users.
+    """
+    # Find the original request
+    req = next((r for r in db.requests if r.id == request_id), None)
+    if req:
+        blood = req.blood_type_needed.value if hasattr(req.blood_type_needed, 'value') else str(req.blood_type_needed)
+        city  = req.location.city if req.location else "Tamil Nadu"
+        notif = notification_service.broadcast_blood_request(
+            patient_name=req.patient_name,
+            blood_group=blood,
+            city=city,
+            urgency="CRITICAL (ESCALATED)",
+            hospital=req.hospital_name or "Nearest Hospital"
+        )
+        return {"status": "escalated", "notification_id": notif.id}
+    else:
+        # Still broadcast even if request not found (SOS fallback)
+        notif = notification_service.broadcast_blood_request(
+            patient_name="Emergency Patient",
+            blood_group="Any",
+            city="Tamil Nadu",
+            urgency="CRITICAL (ESCALATED)",
+            hospital="Nearest Hospital"
+        )
+        return {"status": "escalated_generic", "notification_id": notif.id}
+
+
 import asyncio
 import json as json_mod
 from fastapi.responses import StreamingResponse

@@ -73,6 +73,104 @@ function updateDrawerActiveLink(itemKey) {
   }
 }
 
+// ═══════════════════════════════════════════
+// NEW UX: Mode Toggle (I Need Blood / I Want to Donate)
+// ═══════════════════════════════════════════
+function switchMode(mode) {
+  const seekerBtn = document.getElementById('mode-btn-seeker');
+  const donorBtn  = document.getElementById('mode-btn-donor');
+  const emergencyArea = document.getElementById('emergency-btn-area');
+
+  if (mode === 'seeker') {
+    seekerBtn && seekerBtn.classList.add('active-red');
+    seekerBtn && seekerBtn.classList.remove('active-blue');
+    donorBtn  && donorBtn.classList.remove('active-red', 'active-blue');
+    // Show big red pulsing button, switch to seeker panel
+    if (emergencyArea) emergencyArea.style.display = 'inline-flex';
+    switchRole('seeker');
+  } else {
+    donorBtn  && donorBtn.classList.add('active-blue');
+    donorBtn  && donorBtn.classList.remove('active-red');
+    seekerBtn && seekerBtn.classList.remove('active-red', 'active-blue');
+    // Hide emergency button for donor mode, switch to donor panel
+    if (emergencyArea) emergencyArea.style.display = 'none';
+    switchRole('donor');
+  }
+}
+
+// ═══════════════════════════════════════════
+// LIVE EMERGENCY FEED — urgency-sorted cards
+// ═══════════════════════════════════════════
+function renderLiveEmergencyFeed() {
+  const container = document.getElementById('live-emergency-feed');
+  if (!container) return;
+
+  // Combine requests + new donors for the live feed
+  const feedItems = [];
+
+  // Add blood requests
+  (activeRequests || []).slice(0, 6).forEach(r => {
+    feedItems.push({
+      type: 'request',
+      bloodType: r.blood_type_needed || r.bloodType || 'O+',
+      title: `${r.blood_type_needed || r.bloodType || 'O+'} Blood Needed — ${r.units_required || 1} unit(s)`,
+      location: r.hospital_location || r.location?.city || 'Chennai',
+      urgency: (r.urgency_level || r.urgency || 'HIGH').toLowerCase(),
+      time: r.created_at ? new Date(r.created_at).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}) : 'Just now',
+      patientName: r.patient_name || 'Patient'
+    });
+  });
+
+  // Add recently registered donors
+  (activeDonors || []).slice(0, 3).forEach(d => {
+    feedItems.push({
+      type: 'donor',
+      bloodType: d.blood_type || 'O+',
+      title: `${d.blood_type || 'O+'} Donor Available — ${d.user_name || 'Anonymous'}`,
+      location: d.location?.city || 'Chennai',
+      urgency: 'low',
+      time: 'Recently joined'
+    });
+  });
+
+  // Sort: critical first
+  const urgencyOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+  feedItems.sort((a, b) => (urgencyOrder[a.urgency] || 3) - (urgencyOrder[b.urgency] || 3));
+
+  if (feedItems.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+        <div style="font-size:2rem; margin-bottom:0.5rem;">🩸</div>
+        <div style="font-size:0.85rem; font-weight:600;">No active emergency requests right now.</div>
+        <div style="font-size:0.78rem; margin-top:4px;">Be the first — request blood or register as a donor!</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = feedItems.map((item, i) => {
+    const urgencyClass = item.urgency === 'critical' ? 'critical' :
+                         item.urgency === 'high' ? 'high' :
+                         item.urgency === 'medium' ? 'medium' : 'low';
+    const urgencyLabel = item.type === 'donor' ? '🟢 DONOR READY' :
+                         item.urgency === 'critical' ? '🔴 CRITICAL' :
+                         item.urgency === 'high' ? '🟠 URGENT' :
+                         item.urgency === 'medium' ? '🟡 MEDIUM' : '🟢 LOW';
+    return `
+      <div class="feed-card urgency-${urgencyClass}" style="animation-delay:${i * 0.07}s">
+        <div class="feed-blood-badge">${item.bloodType}</div>
+        <div class="feed-card-body">
+          <div class="feed-card-title">${item.title}</div>
+          <div class="feed-card-meta">
+            <span class="urgency-pill ${urgencyClass}">${urgencyLabel}</span>
+            <span>📍 ${item.location}</span>
+            <span>🕐 ${item.time}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Restore missing selectMenuItem
 function selectMenuItem(itemKey) {
   toggleNavDrawer();
   updateDrawerActiveLink(itemKey);
@@ -80,9 +178,9 @@ function selectMenuItem(itemKey) {
   if (itemKey === 'campaigns') {
     switchRole('campaigns');
   } else if (itemKey === 'seeker') {
-    switchRole('seeker');
+    switchMode('seeker');
   } else if (itemKey === 'donor') {
-    switchRole('donor');
+    switchMode('donor');
   } else if (itemKey === 'login') {
     if (currentUserProfile && currentUserProfile.userName && currentUserProfile.userName !== 'Guest') {
       openProfileModal();
@@ -103,7 +201,10 @@ document.addEventListener('DOMContentLoaded', () => {
   setDefaultDatesInCampaignForm();
   // Connect live event stream for real-time updates
   connectLiveEventStream();
+  // Render live emergency feed after short delay for data to load
+  setTimeout(renderLiveEmergencyFeed, 1200);
 });
+
 
 // ═══════════════════════════════════════════
 // SSE LIVE EVENT STREAM — Real-time push from server
@@ -159,14 +260,19 @@ function handleIncomingLiveNotification(data) {
     icon = '📢';
     loadCampaigns();
     loadAnalytics();
+    // Show update strip on campaigns page if user is viewing it
+    if (currentRole === 'campaigns' && data.title) {
+      showCampUpdateStrip(data.title, 'updated');
+    }
   } else if (type === 'BLOOD_REQUEST') {
     icon = '🚨';
     loadRequests();
     loadAnalytics();
   }
 
+
   // Show live broadcast toast popup to the current user
-  showBroadcastToast(`${icon} ${data.title}`, data.message);
+  showBroadcastToast(`${icon} ${data.title}`, data.message, type);
 
   // Update notification badge & refresh notification center
   loadNotifications();
@@ -817,17 +923,30 @@ function handleGuestLogin() {
 function switchRole(role) {
   currentRole = role;
   updateDrawerActiveLink(role);
+
+  // Sync ALL role button sets (nav pills + any other .role-btn)
   document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
-  const btn = document.getElementById(`role-btn-${role}`);
-  if (btn) btn.classList.add('active');
+  // Nav pill IDs: nav-btn-donor, nav-btn-seeker, nav-btn-camps
+  const navBtnMap = { donor: 'nav-btn-donor', seeker: 'nav-btn-seeker', campaigns: 'nav-btn-camps' };
+  const navBtn = document.getElementById(navBtnMap[role]);
+  if (navBtn) navBtn.classList.add('active');
+  // Legacy ID pattern
+  const legacyBtn = document.getElementById(`role-btn-${role}`);
+  if (legacyBtn) legacyBtn.classList.add('active');
 
   const donorView = document.getElementById('view-donor');
-  const campView = document.getElementById('view-campaigns');
+  const campView  = document.getElementById('view-campaigns');
   const seekerView = document.getElementById('view-seeker');
 
-  if (donorView) donorView.style.display = role === 'donor' ? 'block' : 'none';
-  if (campView) campView.style.display = role === 'campaigns' ? 'block' : 'none';
-  if (seekerView) seekerView.style.display = role === 'seeker' ? 'block' : 'none';
+  if (donorView)  donorView.style.display  = role === 'donor'     ? 'block' : 'none';
+  if (campView)   campView.style.display   = role === 'campaigns'  ? 'block' : 'none';
+  if (seekerView) seekerView.style.display = role === 'seeker'    ? 'block' : 'none';
+
+  // Sync mode-toggle-btn pills
+  const seekerModeBtn = document.getElementById('mode-btn-seeker');
+  const donorModeBtn  = document.getElementById('mode-btn-donor');
+  if (seekerModeBtn) seekerModeBtn.classList.toggle('active-red', role === 'seeker');
+  if (donorModeBtn)  donorModeBtn.classList.toggle('active-blue', role === 'donor');
 
   if (role === 'donor') {
     handleActiveCampaignClick();
@@ -985,18 +1104,23 @@ async function handleHeroCampaignSubmit(event) {
 
     document.getElementById('hero-campaign-form').reset();
 
-    // Broadcast toast to notify other active users
+    // Show camp update strip on campaigns page
+    showCampUpdateStrip(title, 'published');
+
+    // Broadcast toast to all users on the platform
     showBroadcastToast(
       `📢 New Campaign: ${title}`,
-      `${organizer} just published a blood drive at ${location}. Join now!`
+      `${organizer} just published a blood drive at ${location}. Join now!`,
+      'CAMPAIGN_UPDATE'
     );
 
-    // Real-Time Alert & Broadcast Notification
-    alert(`🎉 CAMPAIGN PUBLISHED & BROADCAST NOTIFICATION DISPATCHED!\n\n📢 Campaign: "${title}"\n🏥 Conducted by: ${organizer}\n📞 Contact Phone: ${phone}\n📍 Location: ${location}\n⏰ Operating Window: ${startFormatted} to ${endFormatted}\n\n📲 Push & SMS Notification alerts have been dispatched live to network donors across Tamil Nadu!`);
+    // Inline confirmation banner (replaces alert)
+    showCampaignPublishBanner(title, organizer, phone, location, startFormatted, endFormatted);
 
     renderCampaignCards();
     loadAnalytics();
     loadNotifications();
+
   } catch (err) {
     console.error('Error publishing campaign:', err);
     activeCampaigns.unshift({
@@ -1011,8 +1135,10 @@ async function handleHeroCampaignSubmit(event) {
       end_date: endFormatted
     });
     document.getElementById('hero-campaign-form').reset();
-    alert(`🎉 CAMPAIGN PUBLISHED & BROADCAST NOTIFICATION DISPATCHED!\n\n📢 Campaign: "${title}"\n🏥 Conducted by: ${organizer}\n📞 Contact Phone: ${phone}\n📍 Location: ${location}\n⏰ Operating Window: ${startFormatted} to ${endFormatted}\n\n📲 Push & SMS Notification alerts have been dispatched live to network donors across Tamil Nadu!`);
+    showCampUpdateStrip(title, 'published');
+    showCampaignPublishBanner(title, organizer, phone, location, startFormatted, endFormatted);
     renderCampaignCards();
+
   }
 }
 
@@ -1052,6 +1178,7 @@ async function loadDonors() {
     const res = await fetch('/api/donors?current_user_id=' + currentUserId);
     activeDonors = await res.json();
     renderRegisteredDonors();
+    renderLiveEmergencyFeed();
   } catch (err) {
     console.error('Error loading donors:', err);
   }
@@ -1077,11 +1204,11 @@ function renderRegisteredDonors() {
   }
 
   container.innerHTML = `
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:1rem; margin-top:1rem;">
       ${activeDonors.map(donor => {
     const bloodType = donor.blood_type || donor.blood_type_needed || 'O+';
     const name = donor.user_name || donor.name || 'Anonymous Donor';
-    const phone = donor.phone_masked || donor.contact_phone || '+91 98401 12345';
+    const phone = donor.phone_masked || donor.contact_phone || '+91 XXXXX XXXXX';
     const city = donor.location ? (donor.location.city || donor.location.address) : 'Chennai, Tamil Nadu';
     const address = donor.location ? donor.location.address : city;
     const encodedAddr = encodeURIComponent(address);
@@ -1089,27 +1216,26 @@ function renderRegisteredDonors() {
     const isNew = donor.is_new === true;
 
     return `
-          <div style="background: ${isNew ? 'rgba(230,57,70,0.08)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isNew ? 'rgba(230,57,70,0.5)' : 'rgba(255,255,255,0.08)'}; border-left: 4px solid ${isNew ? 'var(--primary-red)' : 'var(--emerald-green)'}; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                <span class="badge badge-blood" style="background: rgba(230,57,70,0.25); color: var(--primary-red); font-weight: 800; font-size: 0.85rem;">🩸 ${bloodType}</span>
-                <span style="font-size: 0.72rem; color: ${isNew ? 'var(--primary-red)' : 'var(--emerald-green)'}; font-weight: 700;">${isNew ? '🆕 RECENTLY REGISTERED' : '🟢 VERIFIED DONOR'}</span>
-              </div>
-              <div style="font-weight: 800; font-size: 1.05rem; color: #fff; font-family: var(--font-heading); margin-bottom: 0.3rem;">${name}</div>
-              <div style="font-size: 0.82rem; color: #a1a1aa; margin-bottom: 0.3rem;">📍 District / City: <b style="color: #fff;">${city}</b></div>
-              <div style="font-size: 0.82rem; color: #a1a1aa; margin-bottom: 0.3rem;">🏠 Location: <b style="color: #fff;">${address}</b></div>
-              <div style="font-size: 0.82rem; color: #a1a1aa; margin-bottom: 0.5rem;">📞 Mobile Number: <b style="color: var(--amber-orange);">${phone}</b></div>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-              <button class="btn-primary" style="padding: 7px 10px; font-size: 0.76rem; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; flex: 1;" onclick="openDonorLocationInMaps('${encodedAddr}', '${encodedName}')">
-                🗺️ Google Maps View
-              </button>
-              <button class="btn-primary" style="padding: 7px 10px; font-size: 0.76rem; background: linear-gradient(135deg, #10b981, #059669); border: none; flex: 1.1;" onclick="alert('📞 Contacting donor ${name} at ${phone} for emergency blood request.')">
-                📞 Contact Donor
-              </button>
-            </div>
-          </div>
-        `;
+      <div class="donor-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="card-blood-badge">🩸 ${bloodType}</span>
+          ${isNew
+            ? '<span class="badge-new">🆕 NEW</span>'
+            : '<span class="badge-verified">✅ Verified</span>'}
+        </div>
+        <div class="card-title">${name}</div>
+        <div class="card-meta-row">📍 <b>${city}</b></div>
+        <div class="card-meta-row">🏠 ${address}</div>
+        <div class="card-meta-row">📞 <span style="color:var(--orange); font-weight:700;">${phone}</span></div>
+        <div class="card-actions">
+          <button class="card-btn-maps" onclick="openDonorLocationInMaps('${encodedAddr}','${encodedName}')">
+            🗺️ Maps
+          </button>
+          <button class="card-btn-contact" onclick="alert('📞 Contacting ${name} at ${phone} for emergency blood request.')">
+            📞 Contact Donor
+          </button>
+        </div>
+      </div>`;
   }).join('')}
     </div>
   `;
@@ -1253,11 +1379,11 @@ async function handleCreateRequest(event) {
   event.preventDefault();
 
   const patientName = document.getElementById('req-patient').value;
-  const phone = document.getElementById('req-phone').value;
-  const bloodType = document.getElementById('req-bloodtype').value;
-  const units = parseInt(document.getElementById('req-units').value) || 1;
-  const urgency = document.getElementById('req-urgency').value;
-  const city = document.getElementById('req-city').value;
+  const phone       = document.getElementById('req-phone').value;
+  const bloodType   = document.getElementById('req-bloodtype').value;
+  const units       = parseInt(document.getElementById('req-units').value) || 1;
+  const urgency     = document.getElementById('req-urgency').value;
+  const city        = document.getElementById('req-city').value;
   const hospitalLoc = document.getElementById('req-location').value;
 
   const payload = {
@@ -1265,46 +1391,84 @@ async function handleCreateRequest(event) {
     blood_type_needed: bloodType,
     units_required: units,
     urgency: urgency,
-    hospital_name: hospitalLoc || "General Hospital",
+    hospital_name: hospitalLoc || 'General Hospital',
     notes: `Contact Mobile: ${phone} | Hospital Location: ${hospitalLoc}`,
-    location: {
-      latitude: 13.0827,
-      longitude: 80.2707,
-      address: hospitalLoc,
-      city: city
-    }
+    location: { latitude: 13.0827, longitude: 80.2707, address: hospitalLoc, city: city }
   };
 
+  let requestId = Date.now(); // fallback id
   try {
     const res = await fetch(`/api/requests?requester_id=${currentUserId}&requester_role=PATIENT`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-
     const data = await res.json();
+    if (data && data.id) requestId = data.id;
     document.getElementById('create-request-form').reset();
-
-    // Broadcast push toast to other users on the platform
-    showBroadcastToast(
-      `🚨 Emergency ${bloodType} Blood Needed!`,
-      `Patient ${patientName} urgently needs ${units} unit(s) at ${hospitalLoc || city}. Please respond!`
-    );
-
-    alert(`🎉 EMERGENCY BLOOD REQUEST DISPATCHED!\n\nPatient: "${patientName}"\nBlood Needed: ${bloodType} (${units} Pints)\nContact Mobile: ${phone}\nHospital Location: ${hospitalLoc}\n\n🚨 Live SMS & Push Alerts have been dispatched to ${data.matched_donor_count || 5} compatible donors nearby!`);
-
-    loadRequests();
-    loadAnalytics();
-    loadNotifications();
   } catch (err) {
     console.error('Error creating request:', err);
     document.getElementById('create-request-form').reset();
-    showBroadcastToast(
-      `🚨 Emergency ${bloodType} Blood Needed!`,
-      `Patient ${patientName} urgently needs blood at ${hospitalLoc || city}. Please respond!`
-    );
-    alert(`🎉 EMERGENCY BLOOD REQUEST DISPATCHED!\n\nPatient: "${patientName}"\nBlood Needed: ${bloodType} (${units} Pints)\nContact Mobile: ${phone}\nHospital Location: ${hospitalLoc}\n\n🚨 Live SMS & Push Alerts have been dispatched to compatible donors nearby!`);
   }
+
+  // Broadcast push toast to other users
+  showBroadcastToast(
+    `🚨 Emergency ${bloodType} Blood Needed!`,
+    `Patient ${patientName} urgently needs ${units} unit(s) at ${hospitalLoc || city}. Please respond!`,
+    'BLOOD_REQUEST'
+  );
+
+  // ── Start Auto-Escalation Timer (Feature 2) ──
+  startEscalationTimer(requestId, bloodType, city || 'Chennai', urgency);
+
+  // Show modern confirmation banner instead of alert
+  showRequestConfirmBanner(patientName, bloodType, units, phone, hospitalLoc || city);
+
+  loadRequests();
+  loadAnalytics();
+  loadNotifications();
+}
+
+function showRequestConfirmBanner(patientName, bloodType, units, phone, location) {
+  // Remove existing banner if any
+  document.getElementById('req-confirm-banner')?.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'req-confirm-banner';
+  banner.style.cssText = `
+    background: linear-gradient(135deg, #F0FFF4, #fff);
+    border: 1.5px solid #9AE6B4;
+    border-left: 5px solid #38A169;
+    border-radius: 16px;
+    padding: 1.2rem 1.4rem;
+    margin: 1rem 0;
+    box-shadow: 0 4px 16px rgba(56,161,105,0.15);
+    animation: fadeIn 0.4s ease;
+    font-family: 'Inter', sans-serif;
+  `;
+  banner.innerHTML = `
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+      <span style="font-size:1.8rem;">✅</span>
+      <div>
+        <div style="font-weight:800; font-size:1rem; color:#276749;">Emergency Request Dispatched!</div>
+        <div style="font-size:0.8rem; color:#38A169;">Live alerts sent to nearby compatible donors</div>
+      </div>
+      <button onclick="this.closest('#req-confirm-banner').remove()" style="margin-left:auto; background:none; border:none; font-size:1.2rem; cursor:pointer; color:#9AE6B4;">✕</button>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.82rem; color:#4A5568;">
+      <div>🧑‍⚕️ <strong>Patient:</strong> ${patientName}</div>
+      <div>🩸 <strong>Blood:</strong> ${bloodType} · ${units} unit(s)</div>
+      <div>📞 <strong>Contact:</strong> ${phone}</div>
+      <div>📍 <strong>Location:</strong> ${location}</div>
+    </div>
+    <div style="margin-top:0.75rem; font-size:0.78rem; color:#718096; background:#F0FFF4; border-radius:8px; padding:0.5rem 0.75rem;">
+      ⏱️ Auto-escalation active — if no response in 3 mins, search will expand to all districts automatically.
+    </div>
+  `;
+
+  const form = document.getElementById('create-request-form');
+  if (form) form.parentNode.insertBefore(banner, form);
+  setTimeout(() => banner?.remove(), 30000);
 }
 
 // Load Urgent Blood Requests
@@ -1312,6 +1476,7 @@ async function loadRequests() {
   try {
     const res = await fetch('/api/requests');
     activeRequests = await res.json();
+    renderLiveEmergencyFeed();
   } catch (err) {
     console.error('Error loading requests:', err);
   }
@@ -1421,111 +1586,108 @@ function isCampaignScheduleActive(camp) {
 
 // Render Active Campaign Cards Sorted by Proximity under "Active Campaign Near Me"
 function renderCampaignCards() {
-  const container1 = document.getElementById('active-campaigns-list-container');
-  const container2 = document.getElementById('campaign-list-container');
+  const container = document.getElementById('active-campaigns-list-container');
+  const emptyState = document.getElementById('camp-empty-state');
+  const countLabel = document.getElementById('camp-live-count-label');
 
-  // Filter campaigns that remain active/upcoming until their end date passes
-  const validActiveCampaigns = activeCampaigns.filter(c => isCampaignScheduleActive(c));
+  // Filter: only active/upcoming campaigns (not ended)
+  const validActive = activeCampaigns.filter(c => isCampaignScheduleActive(c));
 
-  if (validActiveCampaigns.length === 0) {
-    const emptyHtml = `<div style="color: var(--text-muted); font-size:0.85rem; padding: 1.5rem; text-align: center;">No active or upcoming campaigns found. Click "Host & Update Campaign Events" to publish one!</div>`;
-    if (container1) container1.innerHTML = emptyHtml;
-    if (container2) container2.innerHTML = emptyHtml;
-    return;
+  // Update count label
+  if (countLabel) {
+    countLabel.innerText = validActive.length > 0
+      ? `${validActive.length} campaign drive${validActive.length > 1 ? 's' : ''} active right now`
+      : 'No active drives at the moment';
   }
 
-  // Compute Distance & Sort Proximity (Closest First)
-  validActiveCampaigns.forEach(c => {
-    if (c.location) {
-      c.distanceKm = calculateDistance(userLocation.latitude, userLocation.longitude, c.location.latitude, c.location.longitude);
-    } else {
-      c.distanceKm = 999;
-    }
+  if (validActive.length === 0) {
+    if (container) container.innerHTML = '';
+    if (emptyState) emptyState.style.display = 'block';
+    return;
+  }
+  if (emptyState) emptyState.style.display = 'none';
+
+  // Sort by proximity
+  validActive.forEach(c => {
+    c.distanceKm = c.location
+      ? calculateDistance(userLocation.latitude, userLocation.longitude, c.location.latitude, c.location.longitude)
+      : 999;
   });
+  validActive.sort((a, b) => a.distanceKm - b.distanceKm);
 
-  validActiveCampaigns.sort((a, b) => a.distanceKm - b.distanceKm);
+  if (!container) return;
 
-  const cardsHtml = `
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; margin-top: 1rem;">
-      ${validActiveCampaigns.map(camp => {
-    const statusInfo = getCampaignStatus(camp);
-    const percent = Math.min(100, Math.round(((camp.units_collected || 0) / (camp.target_units || 1)) * 100));
-    const locStr = camp.location ? (camp.location.address || camp.location.city) : 'Chennai, Tamil Nadu';
-    const phoneStr = camp.contact_phone || '+91 98401 12345';
+  container.innerHTML = validActive.map(camp => {
+    const statusInfo  = getCampaignStatus(camp);
+    const percent     = Math.min(100, Math.round(((camp.units_collected || 0) / (camp.target_units || 1)) * 100));
+    const locStr      = camp.location ? (camp.location.address || camp.location.city) : 'Chennai, Tamil Nadu';
+    const phoneStr    = camp.contact_phone || '+91 98401 12345';
     const formattedStart = formatToDDMMYYYY(camp.start_date);
-    const formattedEnd = formatToDDMMYYYY(camp.end_date);
-    const encodedAddr = encodeURIComponent(locStr);
-    const encodedTitle = encodeURIComponent(camp.title);
-    const lat = camp.location ? camp.location.latitude : 13.0827;
+    const formattedEnd   = formatToDDMMYYYY(camp.end_date);
+    const lat = camp.location ? camp.location.latitude  : 13.0827;
     const lon = camp.location ? camp.location.longitude : 80.2707;
-
-    const isUpcoming = statusInfo.isUpcoming;
-    const statusBadgeHtml = isUpcoming
-      ? `<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; font-weight: 700; padding: 2px 8px; border-radius: 10px;">🟡 UPCOMING</span>`
-      : `<span class="badge badge-eligible" style="background: rgba(16, 185, 129, 0.2); color: var(--emerald-green); font-weight: 700; padding: 2px 8px; border-radius: 10px;">🟢 LIVE NOW</span>`;
-
-    const statusTagHtml = isUpcoming
-      ? `<span style="font-size:0.75rem; font-weight:800; color:#f59e0b; text-transform: uppercase;">📅 UPCOMING CAMPAIGN DRIVE</span>`
-      : `<span style="font-size:0.75rem; font-weight:800; color:var(--amber-orange); text-transform: uppercase;">⚡ LIVE CAMPAIGN DRIVE</span>`;
-
-    const borderColor = isUpcoming ? '#f59e0b' : 'var(--primary-red)';
+    const isUpcoming  = statusInfo.isUpcoming;
+    const distLabel   = camp.distanceKm < 999 ? `${camp.distanceKm.toFixed(1)} km away` : '';
+    const encodedAddr  = encodeURIComponent(locStr);
+    const encodedTitle = encodeURIComponent(camp.title);
 
     return `
-          <div class="campaign-card" style="border-left: 4px solid ${borderColor}; background: rgba(255,255,255,0.03); padding: 1.35rem; border-radius: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-              <div class="card-header-row" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-                ${statusTagHtml}
-                ${statusBadgeHtml}
-              </div>
+      <div class="camp-card">
+        <div class="camp-card-badges">
+          <span class="camp-card-badge camp-badge-live">${isUpcoming ? '📅 UPCOMING' : '⚡ LIVE DRIVE'}</span>
+          <span class="camp-card-badge camp-badge-active">${isUpcoming ? '🟡 UPCOMING' : '🟢 LIVE NOW'}</span>
+          ${distLabel ? `<span class="camp-card-badge" style="background:var(--blue-light);color:var(--blue);border:1px solid #BEE3F8;">📍 ${distLabel}</span>` : ''}
+        </div>
 
-              <div style="font-weight: 800; font-size: 1.15rem; color:#fff; margin-bottom: 0.4rem; font-family: var(--font-heading);">${camp.title}</div>
-              
-              <div style="font-size: 0.88rem; color: var(--emerald-green); font-weight: 700; margin-bottom: 0.45rem;">
-                🏥 Conducted by: <b style="color: #fff;">${camp.organizer_name}</b>
-              </div>
+        <div class="camp-card-title">${camp.title}</div>
 
-              <div style="font-size: 0.85rem; color: #a1a1aa; margin-bottom: 0.45rem;">
-                📞 Organizer Helpline: <b style="color: var(--amber-orange);">${phoneStr}</b>
-              </div>
+        <div class="camp-card-organizer">🏥 <strong>${camp.organizer_name}</strong></div>
 
-              <div style="font-size: 0.85rem; color: #a1a1aa; margin-bottom: 0.45rem;">
-                📍 Venue Location: <b style="color: #fff;">${locStr}</b>
-              </div>
+        <div class="camp-card-meta">
+          <span>📞 <b style="color:var(--orange);">${phoneStr}</b></span>
+          <span>📍 ${locStr}</span>
+          <span>⏰ ${formattedStart}${formattedEnd ? ' → ' + formattedEnd : ''}</span>
+          ${camp.start_time && camp.end_time ? `<span>🕐 ${camp.start_time} – ${camp.end_time}</span>` : ''}
+        </div>
 
-              <div style="font-size: 0.82rem; color: #a1a1aa; margin-bottom: 0.45rem;">
-                ⏰ Operating Schedule: <b style="color: #fff;">${formattedStart} ${formattedEnd ? 'to ' + formattedEnd : ''}</b>
-              </div>
-
-              <div style="font-size: 0.78rem; color: ${isUpcoming ? '#f59e0b' : 'var(--emerald-green)'}; font-weight: 700; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.3rem;">
-                <span>${isUpcoming ? '📅 Upcoming (Starts on Start Date)' : '⏳ Active Until Drive Ends:'}</span> <b style="color: #fff;">${formattedEnd ? formattedEnd : 'Continuous'}</b>
-              </div>
-
-              <div class="campaign-progress-bar" style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-bottom: 0.4rem;">
-                <div class="campaign-progress-fill" style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, ${isUpcoming ? '#f59e0b' : 'var(--primary-red)'}, var(--emerald-green));"></div>
-              </div>
-              <div style="display:flex; justify-content:space-between; font-size:0.76rem; color:#a1a1aa; margin-bottom: 0.8rem;">
-                <span>Target Units: <b style="color: #fff;">${camp.target_units || 100} Pints</b></span>
-                <span style="color:var(--emerald-green); font-weight:700;">${percent}% Collected</span>
-              </div>
-            </div>
-
-            <div style="display: flex; gap: 0.6rem; margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.85rem;">
-              <button class="btn-primary" style="padding: 8px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border: none; flex: 1.2;" onclick="openInGoogleMaps(${lat}, ${lon}, '${encodedAddr}', '${encodedTitle}')">
-                🗺️ Google Maps Route
-              </button>
-              <button class="btn-primary" style="padding: 8px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #10b981, #059669); border: none; flex: 1;" onclick="joinCampaign(${camp.id})">
-                ✨ Register Drive
-              </button>
-            </div>
+        <div class="camp-card-progress">
+          <div class="camp-card-progress-label">
+            <span>Target: <b>${camp.target_units || 100} pints</b></span>
+            <span style="color:var(--green);">${percent}% Collected</span>
           </div>
-        `;
-  }).join('')}
-    </div>
-  `;
+          <div class="camp-card-progress-bar">
+            <div class="camp-card-progress-fill" style="width:${percent}%;"></div>
+          </div>
+        </div>
 
-  if (container1) container1.innerHTML = cardsHtml;
-  if (container2) container2.innerHTML = cardsHtml;
+        <div class="camp-card-actions">
+          <button class="camp-btn-directions"
+            onclick="openInGoogleMaps(${lat},${lon},'${encodedAddr}','${encodedTitle}')">
+            🗺️ Directions
+          </button>
+          <button class="camp-btn-join" onclick="joinCampaign(${camp.id})">
+            ✨ Join Drive
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Also update the secondary container if exists (other panels)
+  const container2 = document.getElementById('campaign-list-container');
+  if (container2) container2.innerHTML = container.innerHTML;
 }
+
+// Show campaign update notification strip (called by SSE)
+function showCampUpdateStrip(title, action) {
+  const strip = document.getElementById('camp-update-strip');
+  if (!strip) return;
+  strip.style.display = 'flex';
+  strip.innerHTML = `📢 <span><strong>${title}</strong> has been ${action}. Campaign list updated.</span>
+    <button onclick="document.getElementById('camp-update-strip').style.display='none'"
+      style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--blue);font-size:1rem;">✕</button>`;
+  setTimeout(() => { if (strip) strip.style.display = 'none'; }, 8000);
+}
+
 
 // Open Directions in Google Maps
 function openInGoogleMaps(lat, lon, encodedAddress, encodedTitle) {
@@ -1776,29 +1938,46 @@ async function loadNotifications() {
     const res = await fetch(`/api/notifications?user_id=${currentUserId}`);
     const notifs = await res.json();
 
-    const countElem = document.getElementById('notif-count');
-    if (countElem) countElem.innerText = notifs.length;
-    const container = document.getElementById('notif-list-container');
+    // Update ALL badge elements
+    const unread = notifs.filter(n => !n.read).length;
+    ['notif-count', 'notif-count-badge'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.innerText = unread;
+        el.style.display = unread > 0 ? 'flex' : 'none';
+      }
+    });
 
+    const container = document.getElementById('notif-list-container');
     if (!container) return;
 
     if (notifs.length === 0) {
-      container.innerHTML = `<p style="color: var(--text-muted);">No recent dispatch notifications.</p>`;
+      container.innerHTML = `
+        <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">🔔</div>
+          <div style="font-size:0.85rem; font-weight:600;">No notifications yet.</div>
+          <div style="font-size:0.78rem;">Updates about donors, campaigns & blood requests appear here.</div>
+        </div>`;
       return;
     }
 
-    container.innerHTML = notifs.map(n => `
-      <div class="card-item" style="border-left: 4px solid var(--primary-red);">
-        <div class="card-header-row">
-          <b style="font-size:0.9rem; color:var(--primary-red);">${n.title}</b>
-          <span style="font-size:0.72rem; color:var(--text-dim);">${new Date(n.sent_at).toLocaleTimeString()}</span>
-        </div>
-        <p style="font-size:0.82rem; margin-top:4px;">${n.message}</p>
-        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">
-          📡 Channel: <b>${n.channel}</b> | SID: ${n.payload ? n.payload.twilio_sid : 'N/A'}
-        </div>
-      </div>
-    `).join('');
+    const typeIcon = { DONOR_UPDATE: '🩸', CAMPAIGN_UPDATE: '📢', BLOOD_REQUEST: '🚨' };
+    container.innerHTML = notifs.slice(0, 30).map(n => {
+      const icon = typeIcon[(n.payload && n.payload.type) || ''] || '🔔';
+      const time = new Date(n.sent_at).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+      const borderColor = n.payload?.type === 'BLOOD_REQUEST' ? 'var(--red)' :
+                          n.payload?.type === 'CAMPAIGN_UPDATE' ? 'var(--orange)' : 'var(--green)';
+      return `
+        <div class="notif-card" style="border-left:3px solid ${borderColor}; ${n.read ? 'opacity:0.7;' : ''}">
+          <div class="notif-card-header">
+            <span class="notif-icon">${icon}</span>
+            <span class="notif-title">${n.title}</span>
+            <span class="notif-time">${time}</span>
+          </div>
+          <div class="notif-message">${n.message}</div>
+          <div class="notif-channel">📡 ${n.channel}</div>
+        </div>`;
+    }).join('');
   } catch (err) {
     console.error('Error loading notifications:', err);
   }
@@ -1847,36 +2026,568 @@ window.addEventListener('DOMContentLoaded', () => {
 // ═══════════════════════════════════════════
 // BROADCAST TOAST — shows live update alerts to other logged-in users
 // ═══════════════════════════════════════════
-function showBroadcastToast(title, message) {
+function showBroadcastToast(title, message, type) {
+  // Remove any existing toasts over limit
+  const existing = document.querySelectorAll('.lp-toast');
+  if (existing.length >= 3) existing[0].remove();
+
+  const isBlood   = type === 'BLOOD_REQUEST';
+  const isCamp    = type === 'CAMPAIGN_UPDATE';
+  const borderCol = isBlood ? '#E53E3E' : isCamp ? '#DD6B20' : '#38A169';
+  const icon      = isBlood ? '🚨' : isCamp ? '📢' : '🩸';
+
   const toast = document.createElement('div');
+  toast.className = 'lp-toast';
   toast.style.cssText = `
-    position: fixed; top: 5rem; right: 1.5rem; z-index: 99999;
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    border: 1.5px solid rgba(230,57,70,0.6);
-    border-left: 4px solid #e63946;
-    border-radius: 14px;
-    padding: 0.9rem 1.2rem;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.7);
-    color: #fff;
-    max-width: 310px;
-    animation: slideInRight 0.4s ease-out;
-    cursor: pointer;
+    position:fixed; top:5rem; right:1.25rem; z-index:99999;
+    background:#fff;
+    border:1px solid #E2E8F0;
+    border-left:4px solid ${borderCol};
+    border-radius:14px;
+    padding:1rem 1.1rem;
+    box-shadow:0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+    max-width:320px; min-width:260px;
+    animation:slideInRight 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
   `;
   toast.innerHTML = `
     <div style="display:flex; align-items:flex-start; gap:10px;">
-      <div style="font-size:1.4rem; margin-top:2px;">🔔</div>
-      <div style="flex:1;">
-        <div style="font-weight:800; font-size:0.875rem; color:#f87171; margin-bottom:2px;">${title}</div>
-        <div style="font-size:0.78rem; color:#cbd5e1; line-height:1.4;">${message}</div>
-        <div style="font-size:0.68rem; color:#64748b; margin-top:5px;">📡 Live Community Update · just now</div>
+      <div style="font-size:1.5rem; line-height:1;">${icon}</div>
+      <div style="flex:1; min-width:0;">
+        <div style="font-weight:700; font-size:0.85rem; color:#1A202C; margin-bottom:3px; line-height:1.3;">${title}</div>
+        <div style="font-size:0.78rem; color:#4A5568; line-height:1.45; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${message}</div>
+        <div style="font-size:0.68rem; color:#A0AEC0; margin-top:5px; font-weight:600;">📡 Live · just now</div>
       </div>
-      <div style="font-size:0.8rem; color:#475569; cursor:pointer;" onclick="this.closest('div[style]').remove()">✕</div>
+      <button onclick="this.closest('.lp-toast').remove()" style="background:none;border:none;color:#A0AEC0;font-size:1rem;cursor:pointer;padding:0;line-height:1;">✕</button>
     </div>
   `;
+  toast.onclick = () => toast.remove();
   document.body.appendChild(toast);
+
   setTimeout(() => {
+    toast.style.transition = 'opacity 0.5s, transform 0.5s';
     toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.6s';
-    setTimeout(() => toast.remove(), 600);
-  }, 6000);
+    toast.style.transform = 'translateX(20px)';
+    setTimeout(() => toast.remove(), 500);
+  }, 7000);
+}
+
+
+// ═══════════════════════════════════════════════════════════════════
+// FEATURE 1: ZERO-FRICTION "PULSE SOS" ONE-TAP WIDGET
+// Hold the button 2 seconds → auto-detect location → auto-request blood
+// ═══════════════════════════════════════════════════════════════════
+let sosHoldTimer = null;
+let sosHoldActive = false;
+
+function startSOSHold(e) {
+  if (e && e.cancelable) e.preventDefault();
+  if (sosHoldActive) return;
+  sosHoldActive = true;
+
+  const btn = document.getElementById('sos-core-btn');
+  const hint = document.getElementById('sos-hint-text');
+  if (btn) btn.classList.add('holding');
+  if (hint) hint.innerText = 'Activating…';
+
+  sosHoldTimer = setTimeout(() => {
+    if (sosHoldActive) triggerPulseSOSRequest();
+  }, 2000);
+}
+
+function cancelSOSHold() {
+  if (!sosHoldActive) return;
+  sosHoldActive = false;
+  clearTimeout(sosHoldTimer);
+
+  const btn = document.getElementById('sos-core-btn');
+  const hint = document.getElementById('sos-hint-text');
+  if (btn) btn.classList.remove('holding');
+  if (hint) hint.innerText = 'Hold 2s';
+}
+
+async function triggerPulseSOSRequest() {
+  sosHoldActive = false;
+  const btn = document.getElementById('sos-core-btn');
+  const hint = document.getElementById('sos-hint-text');
+  if (btn) btn.classList.remove('holding');
+  if (hint) hint.innerText = 'Hold 2s';
+
+  // Show SOS confirm modal
+  const modal = document.getElementById('sos-confirm-modal');
+  if (modal) modal.classList.add('active');
+
+  const setStep = (n, state) => {
+    const el = document.getElementById(`sos-step-${n}`);
+    if (el) {
+      el.style.opacity = '1';
+      el.className = 'sos-step ' + state;
+    }
+  };
+
+  // Step 1: Detect Location
+  setStep(1, 'active');
+  let city = 'Chennai', lat = 13.0827, lon = 80.2707;
+  try {
+    if (navigator.geolocation) {
+      await new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition(pos => {
+          lat = pos.coords.latitude;
+          lon = pos.coords.longitude;
+          resolve();
+        }, () => resolve(), { timeout: 4000 });
+      });
+    }
+    if (typeof reverseGeocode === 'function') {
+      city = await reverseGeocode(lat, lon) || 'Chennai';
+    }
+  } catch (e) {}
+  setStep(1, 'done');
+
+  // Step 2: Get blood group from saved profile
+  setStep(2, 'active');
+  await new Promise(r => setTimeout(r, 600));
+  let bloodGroup = 'O+';
+  try {
+    const saved = sessionStorage.getItem('lp_user') || localStorage.getItem('lp_user');
+    if (saved) {
+      const u = JSON.parse(saved);
+      if (u.bloodGroup) bloodGroup = u.bloodGroup;
+    }
+    // Also check donor form if filled
+    const heroBlood = document.getElementById('hero-donor-blood-type');
+    if (heroBlood && heroBlood.value) bloodGroup = heroBlood.value;
+  } catch (e) {}
+  const detailsEl = document.getElementById('sos-confirm-details');
+  if (detailsEl) detailsEl.innerText =
+    `Emergency request for ${bloodGroup} blood at ${city}. Broadcasting to nearby donors now...`;
+  setStep(2, 'done');
+
+  // Step 3: Broadcast to nearby donors
+  setStep(3, 'active');
+  try {
+    const payload = {
+      patient_name: currentUserName || 'Emergency Patient',
+      blood_type_needed: bloodGroup,
+      units_needed: 2,
+      urgency: 'CRITICAL',
+      hospital_name: 'Nearest Hospital (GPS Auto)',
+      contact_phone: currentUserProfile?.phone || 'SOS Auto',
+      location: { city: city, district: city, state: 'Tamil Nadu', lat, lng: lon }
+    };
+    await fetch('/api/requests/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {}
+  await new Promise(r => setTimeout(r, 800));
+  setStep(3, 'done');
+
+  // Step 4: Done
+  setStep(4, 'active');
+  await new Promise(r => setTimeout(r, 400));
+  setStep(4, 'done');
+
+  // Show toast and auto-close modal
+  showBroadcastToast('🆘 PULSE SOS Sent!',
+    `Emergency ${bloodGroup} request broadcast to all nearby donors in ${city}.`,
+    'BLOOD_REQUEST');
+  loadRequests();
+  loadNotifications();
+
+  setTimeout(() => {
+    if (modal) modal.classList.remove('active');
+    switchRole('seeker');
+  }, 3500);
+}
+
+function cancelSOSModal() {
+  const modal = document.getElementById('sos-confirm-modal');
+  if (modal) modal.classList.remove('active');
+  // Reset steps
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById(`sos-step-${i}`);
+    if (el) {
+      el.className = 'sos-step';
+      if (i > 1) el.style.opacity = '0.3';
+      else el.style.opacity = '1';
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FEATURE 2: AUTO-FALLTHROUGH ESCALATION SYSTEM
+// After posting a request, if no donor accepts in N minutes → escalate
+// ═══════════════════════════════════════════════════════════════════
+const ESCALATION_TIMERS = {};
+
+function startEscalationTimer(requestId, bloodGroup, city, urgency) {
+  // Tier 1: 3 min → re-broadcast to wider radius
+  // Tier 2: 6 min → mark as CRITICAL and notify admin
+  const tier1Delay = urgency === 'CRITICAL' ? 3 * 60 * 1000 : 5 * 60 * 1000;
+  const tier2Delay = urgency === 'CRITICAL' ? 6 * 60 * 1000 : 10 * 60 * 1000;
+
+  // Clear any existing timer for this request
+  if (ESCALATION_TIMERS[requestId]) {
+    clearTimeout(ESCALATION_TIMERS[requestId].t1);
+    clearTimeout(ESCALATION_TIMERS[requestId].t2);
+  }
+
+  const t1 = setTimeout(async () => {
+    // Tier 1 escalation: expanded re-broadcast
+    showBroadcastToast(
+      `📡 Escalation Alert — ${bloodGroup} Still Needed`,
+      `No donor has accepted the ${bloodGroup} request in ${city} yet. Expanding search to all districts.`,
+      'BLOOD_REQUEST'
+    );
+    // Re-trigger notification via SSE (server-side notify)
+    try {
+      await fetch(`/api/requests/${requestId}/escalate`, { method: 'POST' }).catch(() => {});
+    } catch (e) {}
+    loadNotifications();
+    loadRequests();
+  }, tier1Delay);
+
+  const t2 = setTimeout(() => {
+    // Tier 2 escalation: critical alert
+    showBroadcastToast(
+      `🚨 CRITICAL ESCALATION — ${bloodGroup} Urgent!`,
+      `${bloodGroup} blood still urgently needed in ${city}. Alerting all verified donors statewide!`,
+      'BLOOD_REQUEST'
+    );
+    loadNotifications();
+  }, tier2Delay);
+
+  ESCALATION_TIMERS[requestId] = { t1, t2 };
+}
+
+function cancelEscalation(requestId) {
+  if (ESCALATION_TIMERS[requestId]) {
+    clearTimeout(ESCALATION_TIMERS[requestId].t1);
+    clearTimeout(ESCALATION_TIMERS[requestId].t2);
+    delete ESCALATION_TIMERS[requestId];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FEATURE 3: VOICE-CONTROLLED EMERGENCY REQUEST
+// Tamil & English speech → auto-fill blood request form
+// ═══════════════════════════════════════════════════════════════════
+let voiceRecognition = null;
+let voiceListening = false;
+
+function startVoiceRequest() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showBroadcastToast('🎙️ Not Supported',
+      'Voice recognition is not supported in your browser. Please use Chrome.', 'INFO');
+    return;
+  }
+
+  if (voiceListening) {
+    stopVoiceRecognition();
+    return;
+  }
+
+  voiceRecognition = new SpeechRecognition();
+  voiceRecognition.continuous = false;
+  voiceRecognition.interimResults = true;
+  voiceRecognition.maxAlternatives = 3;
+  // Support both Tamil and English
+  voiceRecognition.lang = 'ta-IN';
+
+  const micBtn = document.getElementById('voice-mic-btn');
+  const micIcon = document.getElementById('voice-mic-icon');
+  const micLabel = document.getElementById('voice-btn-label');
+  const transcriptEl = document.getElementById('voice-transcript');
+
+  voiceListening = true;
+  if (micBtn) micBtn.classList.add('listening');
+  if (micIcon) micIcon.innerText = '⏹️';
+  if (micLabel) micLabel.innerText = 'Stop (Listening…)';
+  if (transcriptEl) { transcriptEl.style.display = 'block'; transcriptEl.innerText = '🎙️ Listening…'; }
+
+  voiceRecognition.onresult = (event) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    if (transcriptEl) transcriptEl.innerText = '🎙️ "' + transcript + '"';
+
+    if (event.results[event.results.length - 1].isFinal) {
+      parseVoiceToForm(transcript);
+      stopVoiceRecognition();
+    }
+  };
+
+  voiceRecognition.onerror = (e) => {
+    stopVoiceRecognition();
+    if (transcriptEl) transcriptEl.innerText = '⚠️ Could not hear clearly. Try again.';
+  };
+
+  voiceRecognition.onend = () => { stopVoiceRecognition(); };
+
+  voiceRecognition.start();
+}
+
+function stopVoiceRecognition() {
+  voiceListening = false;
+  if (voiceRecognition) { try { voiceRecognition.stop(); } catch (e) {} voiceRecognition = null; }
+  const micBtn = document.getElementById('voice-mic-btn');
+  const micIcon = document.getElementById('voice-mic-icon');
+  const micLabel = document.getElementById('voice-btn-label');
+  if (micBtn) micBtn.classList.remove('listening');
+  if (micIcon) micIcon.innerText = '🎙️';
+  if (micLabel) micLabel.innerText = 'Voice Request';
+}
+
+function parseVoiceToForm(text) {
+  const t = text.toLowerCase();
+  const transcriptEl = document.getElementById('voice-transcript');
+
+  // ── Extract blood group ──
+  const bloodMap = {
+    'a positive': 'A+', 'a plus': 'A+', 'a+': 'A+', 'ஏ பாசிட்டிவ்': 'A+',
+    'a negative': 'A-', 'a minus': 'A-', 'a-': 'A-',
+    'b positive': 'B+', 'b plus': 'B+', 'b+': 'B+', 'பி பாசிட்டிவ்': 'B+',
+    'b negative': 'B-', 'b minus': 'B-', 'b-': 'B-',
+    'o positive': 'O+', 'o plus': 'O+', 'o+': 'O+', 'ஓ பாசிட்டிவ்': 'O+',
+    'o negative': 'O-', 'o minus': 'O-', 'o-': 'O-', 'universal': 'O-',
+    'ab positive': 'AB+', 'ab plus': 'AB+', 'ab+': 'AB+',
+    'ab negative': 'AB-', 'ab minus': 'AB-', 'ab-': 'AB-',
+  };
+  let detectedBlood = null;
+  for (const [phrase, group] of Object.entries(bloodMap)) {
+    if (t.includes(phrase)) { detectedBlood = group; break; }
+  }
+
+  // ── Extract units ──
+  const unitsMatch = t.match(/(\d+)\s*(unit|bottle|பாட்டில்|யூனிட்)/);
+  const units = unitsMatch ? parseInt(unitsMatch[1]) : 2;
+
+  // ── Extract hospital name ──
+  const hospitalPatterns = [
+    /apollo/i, /fortis/i, /miot/i, /kauvery/i, /vijaya/i, /gleneagles/i,
+    /government/i, /govt/i, /ராஜீவ்/i, /அரசு/i, /[\w\s]+ hospital/i
+  ];
+  let hospital = '';
+  for (const pat of hospitalPatterns) {
+    const m = text.match(pat);
+    if (m) { hospital = m[0]; break; }
+  }
+
+  // ── Extract urgency ──
+  const isUrgent = /urgent|emergency|critical|உடனடி|அவசர/.test(t);
+
+  // ── Fill form fields ──
+  let filled = [];
+
+  if (detectedBlood) {
+    const sel = document.getElementById('req-blood-type') || document.getElementById('blood-type-needed');
+    if (sel) { sel.value = detectedBlood; filled.push(`Blood: ${detectedBlood}`); }
+  }
+  const unitsInput = document.getElementById('req-units') || document.getElementById('units-needed');
+  if (unitsInput && units) { unitsInput.value = units; filled.push(`Units: ${units}`); }
+
+  if (hospital) {
+    const hospInput = document.getElementById('req-hospital') || document.getElementById('hospital-name');
+    if (hospInput) { hospInput.value = hospital; filled.push(`Hospital: ${hospital}`); }
+  }
+  if (isUrgent) {
+    const urgSel = document.getElementById('req-urgency') || document.getElementById('urgency-level');
+    if (urgSel) { urgSel.value = 'CRITICAL'; filled.push('Urgency: CRITICAL'); }
+  }
+
+  // ── Show result ──
+  if (transcriptEl) {
+    if (filled.length > 0) {
+      transcriptEl.innerHTML =
+        `✅ Detected: <strong>${filled.join(' · ')}</strong><br>` +
+        `<span style="font-size:0.75rem; color:#86efac;">Form auto-filled! Please verify and submit.</span>`;
+    } else {
+      transcriptEl.innerText =
+        '⚠️ Could not parse blood group. Try: "Apollo hospital A positive blood 2 units"';
+    }
+  }
+
+  if (filled.length > 0) {
+    showBroadcastToast('🎙️ Voice Filled!',
+      'Form auto-filled from your voice command. Please verify and submit.', 'INFO');
+    // Scroll to form
+    const form = document.getElementById('create-request-form');
+    if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FEATURE 4: SMART DONATION ELIGIBILITY CALCULATOR
+// ═══════════════════════════════════════════════════════════════════
+let eligAnswers = { step1: null, step2: null, step3: null };
+
+function toggleEligibilityWizard() {
+  const wizard = document.getElementById('eligibility-wizard');
+  const btn = document.getElementById('eligibility-toggle-btn');
+  if (!wizard) return;
+  const isOpen = wizard.style.display !== 'none';
+  wizard.style.display = isOpen ? 'none' : 'block';
+  if (btn) btn.innerText = isOpen ? 'Check Now →' : '✕ Close';
+  if (!isOpen) resetEligibility();
+}
+
+function selectEligStep1(answer) {
+  eligAnswers.step1 = answer;
+  if (answer === 'under90') {
+    // Immediately show not eligible
+    showEligResult('not-eligible',
+      '⏳ Not Yet Eligible',
+      'You must wait at least 90 days between blood donations. This ensures your body recovers fully.',
+      null, true, 90);
+    return;
+  }
+  document.getElementById('elig-step-1').style.display = 'none';
+  document.getElementById('elig-step-2').style.display = 'block';
+}
+
+function selectEligStep2(answer) {
+  eligAnswers.step2 = answer;
+  if (answer === 'yes') {
+    showEligResult('warning',
+      '⚠️ Please Consult a Doctor',
+      'Ongoing medications or a recent tattoo (within 6 months) may temporarily disqualify you from donating. Please consult your doctor before proceeding.',
+      null, false, 0);
+    return;
+  }
+  document.getElementById('elig-step-2').style.display = 'none';
+  document.getElementById('elig-step-3').style.display = 'block';
+}
+
+function selectEligStep3(answer) {
+  eligAnswers.step3 = answer;
+  if (answer === 'no') {
+    showEligResult('not-eligible',
+      '❌ Weight Requirement Not Met',
+      'Blood donors must weigh at least 50 kg (110 lbs) to ensure a safe donation for both you and the recipient.',
+      null, false, 0);
+    return;
+  }
+  // All checks passed!
+  showEligResult('eligible',
+    '✅ You Are Eligible to Donate Today!',
+    'Great news! You meet all eligibility criteria. Your blood donation can save up to 3 lives. Register now or visit a nearby camp!',
+    new Date(), true, 0);
+}
+
+function showEligResult(type, title, message, eligibleFrom, showCalendar, daysToWait) {
+  // Hide all steps, show result
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(`elig-step-${i}`);
+    if (el) el.style.display = 'none';
+  }
+  const resultEl = document.getElementById('elig-result');
+  const cardEl = document.getElementById('elig-result-card');
+  const calBtn = document.getElementById('elig-calendar-btn');
+  if (!resultEl || !cardEl) return;
+  resultEl.style.display = 'block';
+
+  let nextDate = '';
+  if (daysToWait > 0) {
+    const d = new Date();
+    d.setDate(d.getDate() + daysToWait);
+    nextDate = `<br><strong>Next eligible date: ${d.toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' })}</strong>`;
+    if (calBtn) calBtn.style.display = 'inline-flex';
+    // Store for calendar
+    window._eligNextDate = d;
+  } else {
+    if (calBtn) {
+      if (showCalendar && type === 'eligible') {
+        calBtn.style.display = 'inline-flex';
+        calBtn.innerText = '📅 Set Reminder for Next Donation (90 days)';
+        const d = new Date();
+        d.setDate(d.getDate() + 90);
+        window._eligNextDate = d;
+      } else {
+        calBtn.style.display = 'none';
+      }
+    }
+  }
+
+  cardEl.className = 'elig-result-card ' + type;
+  cardEl.innerHTML = `
+    <div class="elig-result-title">${title}</div>
+    <div style="font-size:0.85rem; line-height:1.6;">${message}${nextDate}</div>
+  `;
+}
+
+function resetEligibility() {
+  eligAnswers = { step1: null, step2: null, step3: null };
+  document.getElementById('elig-step-1').style.display = 'block';
+  document.getElementById('elig-step-2').style.display = 'none';
+  document.getElementById('elig-step-3').style.display = 'none';
+  document.getElementById('elig-result').style.display = 'none';
+}
+
+function addToGoogleCalendar() {
+  const date = window._eligNextDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const dateStr = `${y}${m}${d}`;
+
+  const title = encodeURIComponent('LifePulse: Blood Donation Day! 🩸');
+  const details = encodeURIComponent(
+    'You are eligible to donate blood again today! Visit a nearby blood donation camp or hospital. Your donation saves up to 3 lives. - LifePulse App'
+  );
+  const location = encodeURIComponent('Nearest Blood Donation Camp, Tamil Nadu');
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateStr}/${dateStr}&details=${details}&location=${location}&sf=true&output=xml`;
+  window.open(url, '_blank');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CAMPAIGN PUBLISH SUCCESS BANNER (replaces blocking alert dialog)
+// ═══════════════════════════════════════════════════════════════════
+function showCampaignPublishBanner(title, organizer, phone, location, startDate, endDate) {
+  document.getElementById('camp-publish-banner')?.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'camp-publish-banner';
+  banner.style.cssText = `
+    background: linear-gradient(135deg, #FFFAF0, #fff);
+    border: 1.5px solid #FBD38D;
+    border-left: 5px solid var(--orange);
+    border-radius: 16px;
+    padding: 1.2rem 1.4rem;
+    margin: 1rem 0;
+    box-shadow: 0 4px 20px rgba(221,107,32,0.15);
+    animation: fadeIn 0.4s ease;
+    font-family: 'Inter', sans-serif;
+  `;
+  banner.innerHTML = `
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+      <span style="font-size:1.8rem;">🎉</span>
+      <div>
+        <div style="font-weight:800; font-size:1rem; color:#7B341E;">Campaign Published & Broadcast!</div>
+        <div style="font-size:0.8rem; color:var(--orange);">Live push alerts dispatched to Tamil Nadu donor network</div>
+      </div>
+      <button onclick="this.closest('#camp-publish-banner').remove()"
+        style="margin-left:auto; background:none; border:none; font-size:1.2rem; cursor:pointer; color:#FBD38D;">✕</button>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; font-size:0.82rem; color:#4A5568;">
+      <div>📢 <strong>${title}</strong></div>
+      <div>🏥 ${organizer}</div>
+      <div>📞 ${phone}</div>
+      <div>📍 ${location}</div>
+      <div style="grid-column:1/-1;">⏰ ${startDate} → ${endDate}</div>
+    </div>
+    <div style="margin-top:0.75rem; font-size:0.78rem; color:#718096; background:#FFFAF0; border-radius:8px; padding:0.5rem 0.75rem;">
+      📲 SMS & Push Notification alerts dispatched live to verified donors across Tamil Nadu!
+    </div>
+  `;
+
+  const form = document.getElementById('hero-campaign-form');
+  if (form) form.parentNode.insertBefore(banner, form);
+  // Auto-scroll to the banner and campaigns list
+  banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => banner?.remove(), 25000);
 }

@@ -1,338 +1,653 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>LifePulse - Geospatial Blood Donor & Campaign Matching Platform</title>
 
   <!-- Favicon & Stylesheet -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+
+  <link rel="icon"
+
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+
   <link rel="stylesheet" href="/static/styles.css" />
 
   <!-- Google Identity Services (OAuth 2.0) -->
+
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- Facebook SDK for Login -->
+
   <script>
-    window.fbAsyncInit = function() {
+
+    window.fbAsyncInit = function () {
+
       FB.init({
+
         appId: '1234567890',  // Replace with your real Facebook App ID
+
         cookie: true,
+
         xfbml: true,
+
         version: 'v20.0'
+
       });
+
     };
-    (function(d, s, id) {
+
+    (function (d, s, id) {
+
       var js, fjs = d.getElementsByTagName(s)[0];
+
       if (d.getElementById(id)) return;
+
       js = d.createElement(s); js.id = id;
+
       js.src = "https://connect.facebook.net/en_US/sdk.js";
+
       fjs.parentNode.insertBefore(js, fjs);
+
     }(document, 'script', 'facebook-jssdk'));
+
   </script>
+
+<style>.hidden{opacity:0;pointer-events:none;}</style>
+
 </head>
 
 <body>
 
   <!-- Hero Motivation Landing View (Matching Picture 2) -->
+
   <div id="hero-landing-screen" class="hero-landing-screen"
-    style="background: #000000 !important; background-color: #000000 !important;">
+
+   >
 
     <!-- Top Bar Controls (Picture 2 style) -->
+
     <div class="hero-top-bar">
+
       <div class="hero-top-capsule">
-        <span style="font-weight: 800; font-size: 0.9rem;">≡</span>
+
+        <span style="font-weight: 800; font-size: 0.9rem;">☰</span>
+
         <span style="font-size: 0.75rem; font-weight: 700;">LifePulse App</span>
+
       </div>
+
       <div class="hero-top-circle" onclick="enterMainApp()" title="Enter Main App">
+
         <span>🩸</span>
+
       </div>
+
     </div>
 
     <!-- Center Motivation Content -->
+
     <div class="hero-motivation-center">
+
       <h1 class="hero-motivation-headline">
+
         Every Drop Counts.<br>
+
         <span style="font-weight: 300; opacity: 0.9;">Give Life Today.</span>
+
       </h1>
 
       <p class="hero-motivation-subtitle">
+
         Join the LifePulse emergency blood donor network across Tamil Nadu.<br>
+
         Your single blood donation saves up to 3 lives in critical medical care.
+
       </p>
 
       <!-- White Capsule "Let's Donate" Button (Matching Picture 2) -->
+
       <button id="hero-lets-donate-btn" class="hero-lets-donate-capsule" onclick="enterMainApp()">
-        <span class="hero-capsule-icon">➔</span>
+
+        <span class="hero-capsule-icon">âž”</span>
+
         <span style="font-weight: 700; letter-spacing: -0.2px;">Let's Donate</span>
+
       </button>
+
     </div>
 
     <!-- Bottom Caption -->
+
     <div class="hero-bottom-caption">
+
       TAMIL NADU EMERGENCY BLOOD DONATION NETWORK • CHENNAI & ALL DISTRICTS
+
     </div>
 
   </div>
 
   <!-- Location Permission Dialog Modal on Entry -->
+
   <div class="modal-overlay" id="location-prompt-modal">
+
     <div class="glass-panel modal-content" style="max-width: 440px; text-align: center; padding: 2rem;">
+
       <div style="font-size: 3rem; margin-bottom: 0.5rem; animation: float-icon 2s infinite alternate;">🎯</div>
+
       <h3 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 0.5rem;">Enable Location Services
+
       </h3>
+
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+
         LifePulse uses your location to automatically find active blood donation campaigns nearest to you and provide
+
         turn-by-turn Google Maps directions.
+
       </p>
+
       <div style="display: flex; gap: 0.8rem; justify-content: center;">
-        <button class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); flex: 1;"
+
+        <button class="btn-primary" style="background: var(--green); flex: 1;"
+
           onclick="allowLocationPermission()">
-          📍 Detect My Location
+
+          ðŸ“ Detect My Location
         </button>
-        <button class="btn-primary"
-          style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); color: var(--text-main); flex: 1;"
-          onclick="dismissLocationPermission()">
+        <button class="btn-secondary" onclick="dismissLocationPermission()">
           Skip (Default)
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Top Navigation Header -->
+        <!-- Top Navigation Header -->
+
   <header class="glass-nav">
-    <div class="brand" onclick="openHeroLanding()" style="cursor: pointer;" title="Back to Hero Motivation Screen">
+
+    <div class="brand" onclick="openHeroLanding()" style="cursor:pointer;" title="Back to Hero Screen">
+
       <div class="brand-icon">🩸</div>
-      <div>LifePulse <span
-          style="font-size: 0.75rem; color: var(--primary-red); font-weight: 600; display: block; margin-top: -4px;">BLOOD
-          MATCHING & CAMPAIGNS</span></div>
+
+      <div>LifePulse <span style="font-size:0.7rem; color:#E53E3E; font-weight:600; display:block; margin-top:-4px;">BLOOD MATCHING &amp; CAMPAIGNS</span></div>
+
     </div>
 
-    <!-- Capsule Menu + Profile Avatar (Top Right) -->
-    <div class="nav-controls" style="display:flex; align-items:center; gap:0.75rem;">
-      <!-- Profile Avatar (shown after login) -->
-      <div id="nav-profile-btn" style="display:none; cursor:pointer; align-items:center; gap:0.5rem;" onclick="openProfileModal()">
-        <div id="nav-avatar" style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#e63946,#c1121f); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.9rem; color:#fff; border:2px solid rgba(230,57,70,0.6); overflow:hidden;">
-          <span id="nav-avatar-text">U</span>
-          <img id="nav-avatar-img" src="" style="width:100%;height:100%;object-fit:cover;display:none;" />
-        </div>
-        <span id="nav-user-label" style="font-size:0.8rem; font-weight:700; color:#fff; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+    <div class="nav-controls">
+
+      <div class="role-badge-selector" id="nav-role-selector">
+
+        <button class="role-btn" id="nav-btn-donor" onclick="switchMode('donor')">🩸 Donor</button>
+
+        <button class="role-btn active" id="nav-btn-seeker" onclick="switchMode('seeker')">🆘 Seeker</button>
+
+        <button class="role-btn" id="nav-btn-camps" onclick="switchRole('campaigns')">📢 Camps</button>
+
       </div>
-      <button id="main-menu-toggle-btn" class="capsule-menu-btn" onclick="toggleNavDrawer()">
-        <span class="capsule-menu-icon">≡</span>
-        <span>Menu</span>
+
+      <button class="notif-btn" onclick="toggleNotifDrawer()" id="notif-bell-btn" title="Notifications">
+
+        🔔
+
+        <span class="notif-badge" id="notif-count-badge" style="display:none;">0</span>
+
       </button>
+
+      <div id="nav-profile-btn" style="display:none; cursor:pointer; align-items:center; gap:0.5rem;" onclick="openProfileModal()">
+
+        <div id="nav-avatar" style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#E53E3E,#C53030); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.9rem; color:#fff; border:2px solid rgba(229,62,62,0.3); overflow:hidden;">
+
+          <span id="nav-avatar-text">U</span>
+
+          <img id="nav-avatar-img" src="" style="width:100%;height:100%;object-fit:cover;display:none;" />
+
+        </div>
+
+        <span id="nav-user-label" style="font-size:0.8rem; font-weight:700; color:#1A202C; max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+
+      </div>
+
+      <button id="main-menu-toggle-btn" class="capsule-menu-btn" onclick="toggleNavDrawer()">
+
+        <span class="capsule-menu-icon">☰</span>
+
+        <span>Menu</span>
+
+      </button>
+
     </div>
+
   </header>
 
-  <!-- Right Side Navigation Drawer Menu -->
   <div id="nav-drawer-overlay" class="drawer-overlay" onclick="toggleNavDrawer()"></div>
 
   <div id="nav-drawer" class="nav-drawer">
+
     <div class="drawer-header-minimal">
-      <button class="drawer-close-minimal" onclick="toggleNavDrawer()" title="Close Menu">✕</button>
+
+      <button class="drawer-close-minimal" onclick="toggleNavDrawer()" title="Close">✕</button>
+
     </div>
 
     <div class="drawer-menu-list-minimal">
-      <div class="drawer-link" onclick="selectMenuItem('campaigns')">Active Campaigns</div>
-      <div class="drawer-link drawer-link-active" onclick="selectMenuItem('donor')">Blood Donator</div>
-      <div class="drawer-link" onclick="selectMenuItem('seeker')">Blood Seeker / Patient</div>
-      <div class="drawer-link" onclick="selectMenuItem('login')" id="drawer-login-text">Login & Account</div>
+
+      <div class="drawer-link" onclick="selectMenuItem('campaigns')">📢 Active Campaigns</div>
+
+      <div class="drawer-link drawer-link-active" onclick="selectMenuItem('donor')">🩸 Blood Donor</div>
+
+      <div class="drawer-link" onclick="selectMenuItem('seeker')">🆘 Blood Seeker</div>
+
+      <div class="drawer-link" onclick="selectMenuItem('login')" id="drawer-login-text">🔑 Login &amp; Account</div>
+
     </div>
+
   </div>
 
-  <!-- Main Centered Interactive Workspace (No Map) -->
   <main class="main-layout main-layout-centered">
 
-    <!-- Central Action Panel & Campaign Management -->
     <section class="panel-container">
 
-      <!-- DONOR MAIN PANEL: DONATE BLOOD AND SAVE LIFE (Image 2 Style) -->
-      <div id="view-donor" class="glass-panel hero-camp-panel" style="padding: 2.2rem;">
+      <!-- HERO TOP -->
+
+<div class="lp-hero-top">
+
+        <!-- Mode Toggle: I Need Blood / I Want to Donate -->
+
+        <div class="mode-toggle-wrapper">
+
+          <button class="mode-toggle-btn active-red" id="mode-btn-seeker" onclick="switchMode('seeker')">
+
+            🆘 I Need Blood
+
+          </button>
+
+          <button class="mode-toggle-btn" id="mode-btn-donor" onclick="switchMode('donor')">
+
+            🩸 I Want to Donate
+
+          </button>
+
+        </div>
+
+        <!-- Big Pulsing REQUEST BLOOD NOW Button -->
+
+        <div class="emergency-btn-wrapper" id="emergency-btn-area">
+
+          <div class="emergency-pulse-ring"></div>
+
+          <div class="emergency-pulse-ring"></div>
+
+          <div class="emergency-pulse-ring"></div>
+
+          <button class="emergency-request-btn"
+
+            onclick="switchRole('seeker'); document.getElementById('create-request-form')?.scrollIntoView({behavior:'smooth'})">
+
+            <span class="btn-icon">🚨</span>
+
+            REQUEST BLOOD NOW
+
+          </button>
+
+        </div>
+
+        <p class="hero-tagline">⚡ Instant alert to 100+ verified donors near you · Tamil Nadu Network</p>
+
+        <!-- Live Emergency Feed -->
+
+        <div style="text-align:left; margin-top:1rem;">
+
+          <div class="feed-header">
+
+            <div class="feed-title">
+
+              <span class="live-dot"></span>
+
+              Live Emergency Feed
+
+            </div>
+
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Real-time updates</span>
+
+          </div>
+
+          <div class="feed-scroll" id="live-emergency-feed">
+
+            <!-- Skeleton loaders while loading -->
+
+            <div class="skeleton-card">
+
+              <div class="skeleton skeleton-title"></div>
+
+              <div class="skeleton skeleton-text"></div>
+
+              <div class="skeleton skeleton-text" style="width:70%"></div>
+
+            </div>
+
+            <div class="skeleton-card">
+
+              <div class="skeleton skeleton-title"></div>
+
+              <div class="skeleton skeleton-text"></div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- DONOR MAIN PANEL: DONATE BLOOD AND SAVE LIFE -->
+
+      <div id="view-donor" class="hero-camp-panel">
+
         <div class="hero-camp-grid">
 
           <!-- Left Column: Title & Information -->
+
           <div class="hero-camp-info">
+
             <div class="hero-camp-tag">L I F E P U L S E D O N O R N E T W O R K</div>
+
             <h1 class="hero-camp-title">Donate Blood &<br><span
-                style="color: var(--primary-red); font-weight: 300;">Save Life.</span></h1>
+
+                style="color: var(--red); font-weight: 300;">Save Life.</span></h1>
+
             <p class="hero-camp-desc">
+
               Register as a verified blood donor across Chennai and Tamil Nadu districts.
+
               Your voluntary registration allows critical patients, hospitals, and emergency seekers to quickly connect
+
               with compatible blood donors.
+
             </p>
+
             <div class="hero-camp-badges">
+
               <span class="hero-badge">✨ 100% Free Registration</span>
+
               <span class="hero-badge">🔒 Privacy Protected</span>
+
               <span class="hero-badge">🩸 Live Donor Registry</span>
+
             </div>
+
           </div>
 
           <!-- Right Column: Dark Donor Registration Form Card (Picture 2 Style) -->
+
           <div class="hero-camp-form-card">
+
             <form id="hero-donor-reg-form" onsubmit="handleHeroDonorRegisterSubmit(event)">
+
               <h3
-                style="font-family: var(--font-heading); font-size: 1.15rem; color: #fff; margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+
+                style="font-family:var(--font-heading); font-size:1.1rem; color:var(--text-primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; font-weight:800;">
+
                 <span>🩸</span> Donor Details Registration
+
               </h3>
 
-              <div class="form-group" style="margin-bottom: 0.85rem;">
-                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Full Name</label>
-                <input type="text" id="hero-donor-name" class="form-input" placeholder="e.g. Karthik Raja" required
-                  style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+              <div class="form-group">
+
+                <label class="form-label" >Full Name</label>
+
+                <input type="text" id="hero-donor-name" class="form-input" placeholder="e.g. Karthik Raja" required />
+
               </div>
 
-              <div class="form-group" style="margin-bottom: 0.85rem;">
-                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Mobile Number</label>
-                <input type="tel" id="hero-donor-phone" class="form-input" placeholder="e.g. +91 98401 12345" required
-                  style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+              <div class="form-group">
+
+                <label class="form-label" >Mobile Number</label>
+
+                <input type="tel" id="hero-donor-phone" class="form-input" placeholder="e.g. +91 98401 12345" required />
+
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Blood Group</label>
-                  <select id="hero-donor-blood-type" class="form-input" required
-                    style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff;">
+
+                  <label class="form-label" >Blood Group</label>
+
+                  <select id="hero-donor-blood-type" class="form-input" required>
+
                     <option value="O+">O+ Positive</option>
+
                     <option value="O-">O- Universal</option>
+
                     <option value="A+">A+ Positive</option>
+
                     <option value="A-">A- Negative</option>
+
                     <option value="B+">B+ Positive</option>
+
                     <option value="B-">B- Negative</option>
+
                     <option value="AB+">AB+ Positive</option>
+
                     <option value="AB-">AB- Negative</option>
+
                   </select>
+
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">District / City</label>
-                  <input type="text" id="hero-donor-city" class="form-input" placeholder="e.g. Chennai" required
-                    style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+
+                  <label class="form-label" >District / City</label>
+
+                  <input type="text" id="hero-donor-city" class="form-input" placeholder="e.g. Chennai" required />
+
                 </div>
+
               </div>
 
               <div class="form-group autocomplete-container" style="margin-bottom: 1rem;">
-                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Specific Address / Hospital
+
+                <label class="form-label" >Specific Address / Hospital
+
                   Location</label>
+
                 <input type="text" id="hero-donor-location" class="form-input"
+
                   placeholder="Type area or district (e.g. T. Nagar, Chennai)..." required autocomplete="off"
+
                   oninput="handleLocationTyping(this.value, 'hero-donor-suggestions-pop', 'hero-donor-location')"
-                  style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+
+                  class="form-input" />
+
                 <div id="hero-donor-suggestions-pop" class="location-suggestions-popup"></div>
+
               </div>
 
               <button type="submit" class="hero-camp-submit-btn" style="width: 100%; margin-top: 0.5rem;">
+
                 Register as Blood Donor
+
               </button>
+
             </form>
+
           </div>
 
         </div>
 
         <!-- Ultra-Minimalist Metric Banner (Only in Donor Page below Registration Bar) -->
+
         <section class="minimal-stats-banner" style="margin-top: 2rem;">
+
           <div class="minimal-stat-item">
+
             <div class="minimal-stat-num" id="stat-active-campaigns">2+</div>
+
             <div class="minimal-stat-lbl">ACTIVE CAMPAIGNS NEAR YOU</div>
+
           </div>
 
           <div class="minimal-stat-divider"></div>
 
           <div class="minimal-stat-item">
+
             <div class="minimal-stat-num" id="stat-donated-blood">141+</div>
+
             <div class="minimal-stat-lbl">DONORS DONATED BLOOD</div>
+
           </div>
 
           <div class="minimal-stat-divider"></div>
 
           <div class="minimal-stat-item">
+
             <div class="minimal-stat-num" id="stat-pints-collected">141+</div>
+
             <div class="minimal-stat-lbl">PINTS OF BLOOD COLLECTED</div>
+
           </div>
 
           <div class="minimal-stat-divider"></div>
 
           <div class="minimal-stat-item">
+
             <div class="minimal-stat-num" id="stat-match-rate">99.8%</div>
+
             <div class="minimal-stat-lbl">DONOR MATCH SUCCESS RATE</div>
+
           </div>
+
         </section>
+
       </div>
 
       <!-- ACTIVE CAMPAIGNS VIEW PANEL (Matching Main Interface Split Hero Theme) -->
-      <div id="view-campaigns" class="glass-panel hero-camp-panel" style="padding: 2.2rem; display: none;">
+
+      <div id="view-campaigns" class="hero-camp-panel" style="display:none;">
+
+        <!-- ─── CAMPAIGN HERO GRID: Info Left · Form Right ─── -->
         <div class="hero-camp-grid">
 
-          <!-- Left Column: Title & Tagline -->
+          <!-- Left: Title & Tagline -->
           <div class="hero-camp-info">
-            <div class="hero-camp-tag">L I F E P U L S E C A M P A I G N N E T W O R K</div>
-            <h1 class="hero-camp-title">Host & Update<br><span
-                style="color: var(--primary-red); font-weight: 300;">Campaign Events.</span></h1>
+            <div class="hero-camp-tag">L I F E P U L S E &nbsp; C A M P A I G N &nbsp; N E T W O R K</div>
+            <h1 class="hero-camp-title">Host &amp; Update<br><span style="color:var(--red); font-weight:300;">Campaign Events.</span></h1>
             <p class="hero-camp-desc">
-              Schedule an emergency blood donation drive in your district. Organizers, hospitals, and community leaders
-              can register active campaign details to connect with donors across Tamil Nadu.
+              Schedule an emergency blood donation drive in your district. Organizers, hospitals,
+              and community leaders can register active campaign details to connect with donors across Tamil Nadu.
             </p>
             <div class="hero-camp-badges">
               <span class="hero-badge">✨ Verified Campaign Drive</span>
               <span class="hero-badge">🔒 Organizer Protected</span>
               <span class="hero-badge">🩸 Live Campaign Registry</span>
             </div>
+
+            <!-- ─── Eligibility Widget (lives inside LEFT column only) ─── -->
+            <div class="eligibility-widget" id="eligibility-widget" style="margin-top:1.5rem;">
+              <div class="eligibility-header">
+                <span class="eligibility-icon">🧬</span>
+                <div style="flex:1;">
+                  <div class="eligibility-title">Am I Eligible to Donate Today?</div>
+                  <div class="eligibility-sub">Take the 3-step eligibility check</div>
+                </div>
+                <button class="eligibility-toggle-btn" id="eligibility-toggle-btn" onclick="toggleEligibilityWizard()">
+                  Check Now →
+                </button>
+              </div>
+              <div id="eligibility-wizard" style="display:none; padding-top:1rem;">
+                <div class="eligibility-step" id="elig-step-1">
+                  <div class="elig-step-badge">Step 1 of 3</div>
+                  <div class="elig-question">📅 When did you last donate blood?</div>
+                  <div class="elig-choices">
+                    <button class="elig-choice-btn" onclick="selectEligStep1('never')">🩸 Never donated before</button>
+                    <button class="elig-choice-btn" onclick="selectEligStep1('over90')">✅ More than 90 days ago</button>
+                    <button class="elig-choice-btn elig-warn" onclick="selectEligStep1('under90')">⚠️ Less than 90 days ago</button>
+                  </div>
+                </div>
+                <div class="eligibility-step" id="elig-step-2" style="display:none;">
+                  <div class="elig-step-badge">Step 2 of 3</div>
+                  <div class="elig-question">💊 Any ongoing medications or tattoo in last 6 months?</div>
+                  <div class="elig-choices">
+                    <button class="elig-choice-btn" onclick="selectEligStep2('no')">✅ No, I am healthy</button>
+                    <button class="elig-choice-btn elig-warn" onclick="selectEligStep2('yes')">⚠️ Yes, I have</button>
+                  </div>
+                </div>
+                <div class="eligibility-step" id="elig-step-3" style="display:none;">
+                  <div class="elig-step-badge">Step 3 of 3</div>
+                  <div class="elig-question">⚖️ Is your body weight more than 50 kg?</div>
+                  <div class="elig-choices">
+                    <button class="elig-choice-btn" onclick="selectEligStep3('yes')">✅ Yes, above 50 kg</button>
+                    <button class="elig-choice-btn elig-warn" onclick="selectEligStep3('no')">⚠️ No, below 50 kg</button>
+                  </div>
+                </div>
+                <div class="eligibility-step" id="elig-result" style="display:none;">
+                  <div id="elig-result-card"></div>
+                  <div style="display:flex; gap:0.6rem; margin-top:1rem; flex-wrap:wrap;">
+                    <button class="btn-secondary" onclick="resetEligibility()">↺ Check Again</button>
+                    <button class="btn-primary" id="elig-calendar-btn" style="display:none;" onclick="addToGoogleCalendar()">
+                      📅 Remind Me on Google Calendar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- ─── End Eligibility Widget ─── -->
+
           </div>
 
-          <!-- Right Column: Dark Host & Update Campaign Form Card -->
+          <!-- Right: Campaign Registration Form Card -->
           <div class="hero-camp-form-card">
             <form id="hero-campaign-form" onsubmit="handleHeroCampaignSubmit(event)">
-              <h3
-                style="font-family: var(--font-heading); font-size: 1.15rem; color: #fff; margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span>📢</span> Register Campaign Details
+
+              <h3 style="font-family:var(--font-heading); font-size:1.05rem; color:var(--text-primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; font-weight:800;">
+                📢 Register Campaign Details
               </h3>
 
-              <div class="form-group" style="margin-bottom: 0.85rem;">
-                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Campaign Name / Title *</label>
+              <div class="form-group">
+                <label class="form-label">Campaign Name / Title *</label>
                 <input type="text" id="hero-camp-title" class="form-input"
-                  placeholder="e.g. RGGGH Emergency Blood Drive" required
-                  style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                  placeholder="e.g. RGGGH Emergency Blood Drive" required />
               </div>
 
-              <div class="form-group" style="margin-bottom: 0.85rem;">
-                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Who is Organizing / Conducting It
-                  *</label>
+              <div class="form-group">
+                <label class="form-label">Who is Organizing / Conducting It *</label>
                 <input type="text" id="hero-camp-organizer" class="form-input"
-                  placeholder="e.g. Rajiv Gandhi Govt General Hospital" required
-                  style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                  placeholder="e.g. Rajiv Gandhi Govt General Hospital" required />
               </div>
 
-              <!-- Date Pickers Row (DD/MM/YYYY Format) -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+              <!-- Date Row -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.85rem;">
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Start Date *</label>
-                  <div style="position: relative;">
-                    <input type="text" id="hero-camp-start-date" class="form-input" placeholder="dd/mm/yyyy"
-                      maxlength="10" required oninput="formatDateInputMask(this)"
-                      style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff; padding-right: 2.2rem;" />
-                    <span
-                      style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.6; font-size: 0.9rem;">📅</span>
+                  <label class="form-label">Start Date *</label>
+                  <div style="position:relative;">
+                    <input type="text" id="hero-camp-start-date" class="form-input"
+                      placeholder="dd/mm/yyyy" maxlength="10" required
+                      oninput="formatDateInputMask(this)" style="padding-right:2.2rem;" />
+                    <span style="position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); pointer-events:none; font-size:0.9rem;">📅</span>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">End Date *</label>
-                  <div style="position: relative;">
-                    <input type="text" id="hero-camp-end-date" class="form-input" placeholder="dd/mm/yyyy"
-                      maxlength="10" required oninput="formatDateInputMask(this)"
-                      style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff; padding-right: 2.2rem;" />
-                    <span
-                      style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.6; font-size: 0.9rem;">📅</span>
+                  <label class="form-label">End Date *</label>
+                  <div style="position:relative;">
+                    <input type="text" id="hero-camp-end-date" class="form-input"
+                      placeholder="dd/mm/yyyy" maxlength="10" required
+                      oninput="formatDateInputMask(this)" style="padding-right:2.2rem;" />
+                    <span style="position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); pointer-events:none; font-size:0.9rem;">📅</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Time of Campaign with AM & PM Row -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+              <!-- Time Row -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.85rem;">
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Start Time (AM/PM) *</label>
-                  <select id="hero-camp-start-time" class="form-input" required
-                    style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff;">
+                  <label class="form-label">Start Time (AM/PM) *</label>
+                  <select id="hero-camp-start-time" class="form-input" required>
                     <option value="08:00 AM">08:00 AM</option>
                     <option value="09:00 AM" selected>09:00 AM</option>
                     <option value="10:00 AM">10:00 AM</option>
@@ -343,9 +658,8 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">End Time (AM/PM) *</label>
-                  <select id="hero-camp-end-time" class="form-input" required
-                    style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff;">
+                  <label class="form-label">End Time (AM/PM) *</label>
+                  <select id="hero-camp-end-time" class="form-input" required>
                     <option value="03:00 PM">03:00 PM</option>
                     <option value="04:00 PM">04:00 PM</option>
                     <option value="05:00 PM" selected>05:00 PM</option>
@@ -356,644 +670,1335 @@
                 </div>
               </div>
 
-              <!-- Contact Phone & Location Row -->
-              <div class="form-group" style="margin-bottom: 0.85rem;">
-                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Organizer Contact Phone / Helpline
-                  *</label>
+              <div class="form-group">
+                <label class="form-label">Organizer Contact Phone / Helpline *</label>
                 <input type="tel" id="hero-camp-phone" class="form-input"
-                  placeholder="e.g. +91 98401 12345 / 044-25305000" required
-                  style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                  placeholder="e.g. +91 98401 12345 / 044-25305000" required />
               </div>
 
-              <!-- Location & Target Units Row -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+              <!-- Location & Target Row -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.85rem;">
                 <div class="form-group autocomplete-container">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Tamil Nadu District / Venue
-                    *</label>
-                  <input type="text" id="hero-camp-location" class="form-input" placeholder="e.g. Chennai, T. Nagar"
-                    required autocomplete="off"
-                    oninput="handleLocationTyping(this.value, 'hero-camp-suggestions-pop', 'hero-camp-location')"
-                    style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                  <label class="form-label">Tamil Nadu District / Venue *</label>
+                  <input type="text" id="hero-camp-location" class="form-input"
+                    placeholder="e.g. Chennai, T. Nagar" required autocomplete="off"
+                    oninput="handleLocationTyping(this.value, 'hero-camp-suggestions-pop', 'hero-camp-location')" />
                   <div id="hero-camp-suggestions-pop" class="location-suggestions-popup"></div>
                 </div>
-
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Target Units (Pints) *</label>
-                  <input type="number" id="hero-camp-target" class="form-input" value="100" min="10" max="1000" required
-                    style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+                  <label class="form-label">Target Units (Pints) *</label>
+                  <input type="number" id="hero-camp-target" class="form-input"
+                    value="100" min="10" max="1000" required />
                 </div>
               </div>
 
-              <button type="submit" class="hero-camp-submit-btn" style="width: 100%; margin-top: 0.5rem;">
-                Publish Campaign Drive
+              <button type="submit" class="hero-camp-submit-btn" style="width:100%; margin-top:0.5rem;">
+                🚀 Publish Campaign Drive
               </button>
+
             </form>
           </div>
 
         </div>
+        <!-- ─── End Campaign Hero Grid ─── -->
 
-        <!-- Live Active Campaign Cards Section -->
-        <div class="panel-header"
-          style="margin-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem;">
-          <h3 class="panel-title" id="campaign-section-title"><span>📢</span> Live Active Campaign Drives</h3>
-          <span style="font-size: 0.78rem; color: var(--emerald-green); font-weight: 600;">Verified Network
-            Drives</span>
-        </div>
+        <!-- ═══════════════════════════════════════════
+             LIVE ACTIVE CAMPAIGN DRIVES SECTION
+             (Only shows active/ongoing campaigns — no blood request feed)
+        ════════════════════════════════════════════ -->
+        <div class="camp-live-section">
 
-        <div id="active-campaigns-list-container">
-          <div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem;">
-            Loading active campaigns...
+          <div class="camp-live-header">
+            <div class="camp-live-title-row">
+              <span class="camp-live-dot"></span>
+              <h2 class="camp-live-title">📢 Live Active Campaign Drives</h2>
+              <span class="camp-live-badge">Verified Network Drives</span>
+            </div>
+            <div class="camp-live-meta" id="camp-live-count-label">Loading campaigns...</div>
           </div>
+
+          <!-- Campaign update notifications strip -->
+          <div id="camp-update-strip" class="camp-update-strip" style="display:none;"></div>
+
+          <!-- Active Campaign Cards Grid -->
+          <div id="active-campaigns-list-container" class="camp-cards-grid">
+            <!-- Skeleton loaders -->
+            <div class="camp-skeleton-card"></div>
+            <div class="camp-skeleton-card"></div>
+            <div class="camp-skeleton-card"></div>
+          </div>
+
+          <!-- Empty state -->
+          <div id="camp-empty-state" class="camp-empty-state" style="display:none;">
+            <div style="font-size:3rem; margin-bottom:0.75rem;">📭</div>
+            <div style="font-weight:700; font-size:0.95rem; color:var(--text-primary); margin-bottom:0.4rem;">No Active Campaign Drives Right Now</div>
+            <div style="font-size:0.82rem; color:var(--text-muted);">Be the first! Use the form above to host a blood donation drive in your district.</div>
+          </div>
+
         </div>
+        <!-- ─── End Live Campaign Section ─── -->
 
       </div>
 
       <!-- SEEKER / PATIENT VIEW PANEL (Picture 2 Split Hero Theme) -->
-      <div id="view-seeker" class="glass-panel hero-camp-panel" style="padding: 2.2rem; display: none;">
+
+      <div id="view-seeker" class="hero-camp-panel" style="display:none;">
+
         <div class="hero-camp-grid">
 
           <!-- Left Column: Title & Information -->
+
           <div class="hero-camp-info">
+
             <div class="hero-camp-tag">L I F E P U L S E S E E K E R N E T W O R K</div>
+
             <h1 class="hero-camp-title">Request Blood &<br><span
-                style="color: var(--primary-red); font-weight: 300;">Save A Life.</span></h1>
+
+                style="color: var(--red); font-weight: 300;">Save A Life.</span></h1>
+
             <p class="hero-camp-desc">
+
               Create an urgent emergency blood request for patients or hospital admissions. Connected donors across
+
               Chennai & Tamil Nadu receive instant alerts to provide immediate blood matches.
+
             </p>
+
             <div class="hero-camp-badges">
+
               <span class="hero-badge">✨ 100% Verified Requests</span>
+
               <span class="hero-badge">🔒 HIPAA Compliant</span>
+
               <span class="hero-badge">🚨 Instant Donor Alert</span>
+
             </div>
+
           </div>
 
           <!-- Right Column: Dark Blood Request Form Card -->
+
           <div class="hero-camp-form-card">
-            <form id="create-request-form" onsubmit="handleCreateRequest(event)">
+
+            
+        <!-- ═══ VOICE COMMAND BUTTON ═══ -->
+        <div class="voice-cmd-bar" id="voice-cmd-bar">
+          <button class="voice-mic-btn" id="voice-mic-btn" onclick="startVoiceRequest()" title="Speak your blood request in Tamil or English">
+            <span class="voice-mic-icon" id="voice-mic-icon">🎙️</span>
+            <span id="voice-btn-label">Voice Request</span>
+          </button>
+          <div class="voice-hint">Say: <em>"Apollo hospital A positive blood 2 units venum"</em></div>
+        </div>
+        <div class="voice-transcript" id="voice-transcript" style="display:none;"></div>
+
+<form id="create-request-form" onsubmit="handleCreateRequest(event)">
+
               <h3
-                style="font-family: var(--font-heading); font-size: 1.15rem; color: #fff; margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+
+                style="font-family:var(--font-heading); font-size:1.1rem; color:var(--text-primary); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; font-weight:800;">
+
                 <span>🚨</span> Create Urgent Blood Request
+
               </h3>
 
-              <div class="form-group" style="margin-bottom: 0.85rem;">
-                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Patient Name / Identifier
+              <div class="form-group">
+
+                <label class="form-label" >Patient Name / Identifier
+
                   *</label>
-                <input type="text" id="req-patient" class="form-input" placeholder="e.g. John Doe (ICU Room 4)" required
-                  style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+
+                <input type="text" id="req-patient" class="form-input" placeholder="e.g. John Doe (ICU Room 4)" required />
+
               </div>
 
-              <div class="form-group" style="margin-bottom: 0.85rem;">
-                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Patient / Attender Mobile Number
+              <div class="form-group">
+
+                <label class="form-label" >Patient / Attender Mobile Number
+
                   *</label>
-                <input type="tel" id="req-phone" class="form-input" placeholder="e.g. +91 98401 12345" required
-                  style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+
+                <input type="tel" id="req-phone" class="form-input" placeholder="e.g. +91 98401 12345" required />
+
               </div>
 
               <!-- Blood Type & Units Row -->
+
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Blood Type Needed *</label>
-                  <select id="req-bloodtype" class="form-input" required
-                    style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff;">
+
+                  <label class="form-label" >Blood Type Needed *</label>
+
+                  <select id="req-bloodtype" class="form-input" required>
+
                     <option value="O-">O- (Universal)</option>
+
                     <option value="O+">O+ Positive</option>
+
                     <option value="A+">A+ Positive</option>
+
                     <option value="A-">A- Negative</option>
+
                     <option value="B+">B+ Positive</option>
+
                     <option value="B-">B- Negative</option>
+
                     <option value="AB+">AB+ Positive</option>
+
                     <option value="AB-">AB- Negative</option>
+
                   </select>
+
                 </div>
+
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Units Required (Pints) *</label>
+
+                  <label class="form-label" >Units Required (Pints) *</label>
+
                   <input type="number" id="req-units" class="form-input" value="2" min="1" max="10" required
-                    style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+
+                    class="form-input" />
+
                 </div>
+
               </div>
 
               <!-- Urgency & District Row -->
+
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Urgency Level *</label>
-                  <select id="req-urgency" class="form-input" required
-                    style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15); color: #fff;">
-                    <option value="CRITICAL">🔴 CRITICAL (Immediate)</option>
-                    <option value="HIGH" selected>🟠 HIGH (Within 6 Hrs)</option>
-                    <option value="MEDIUM">🟡 MEDIUM (24 Hrs)</option>
-                    <option value="LOW">🟢 LOW (Scheduled)</option>
+
+                  <label class="form-label" >Urgency Level *</label>
+
+                  <select id="req-urgency" class="form-input" required>
+
+                    <option value="CRITICAL">ðŸ”´ CRITICAL (Immediate)</option>
+
+                    <option value="HIGH" selected>ðŸŸ  HIGH (Within 6 Hrs)</option>
+
+                    <option value="MEDIUM">ðŸŸ¡ MEDIUM (24 Hrs)</option>
+
+                    <option value="LOW">ðŸŸ¢ LOW (Scheduled)</option>
+
                   </select>
+
                 </div>
+
                 <div class="form-group">
-                  <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">District / City *</label>
+
+                  <label class="form-label" >District / City *</label>
+
                   <input type="text" id="req-city" class="form-input" value="Chennai" required
-                    style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+
+                    class="form-input" />
+
                 </div>
+
               </div>
 
               <!-- Specific Hospital Location / Address -->
+
               <div class="form-group autocomplete-container" style="margin-bottom: 1rem;">
-                <label class="form-label" style="font-size: 0.78rem; color: #a1a1aa;">Hospital Name & Location Address
+
+                <label class="form-label" >Hospital Name & Location Address
+
                   *</label>
+
                 <input type="text" id="req-location" class="form-input"
+
                   placeholder="Type hospital or location (e.g. Rajiv Gandhi Hospital, Park Town, Chennai)..." required
+
                   autocomplete="off" oninput="handleLocationTyping(this.value, 'req-suggestions-pop', 'req-location')"
-                  style="background: rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.15);" />
+
+                  class="form-input" />
+
                 <div id="req-suggestions-pop" class="location-suggestions-popup"></div>
+
               </div>
 
               <button type="submit" class="hero-camp-submit-btn" style="width: 100%; margin-top: 0.5rem;">
+
                 Dispatch Request & Match Donors
+
               </button>
+
             </form>
+
           </div>
 
         </div>
 
         <!-- Live Registered Donors Directory for Seekers/Patients -->
+
         <div class="panel-header"
+
           style="margin-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem;">
+
           <h3 class="panel-title"><span>🩸</span> Registered Verified Donors Directory</h3>
-          <span style="font-size: 0.78rem; color: var(--emerald-green); font-weight: 600;">Live Network Donors</span>
+
+          <span style="font-size: 0.78rem; color: var(--green); font-weight: 600;">Live Network Donors</span>
+
         </div>
 
         <div id="registered-donors-list-container">
+
           <div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1.5rem;">
+
             Loading registered donors...
+
           </div>
+
         </div>
+
       </div>
 
     </section>
 
   </main>
 
-  <!-- ══════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
        Google Account Picker & Sign-in Modal (Realistic UI)
-  ══════════════════════════════════════════════ -->
-  <div class="modal-overlay" id="google-account-picker" style="z-index:10000;" onclick="if(event.target===this)closeGooglePicker()">
-    <div style="background:#fff; border-radius:24px; padding:0; width:410px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.6); overflow:hidden; animation:scaleIn 0.25s ease-out; font-family:'Google Sans',Roboto,Arial,sans-serif;">
-      
+
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+
+  <div class="modal-overlay" id="google-account-picker" style="z-index:10000;"
+
+    onclick="if(event.target===this)closeGooglePicker()">
+
+    <div
+
+      style="background:#fff; border-radius:24px; padding:0; width:410px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.6); overflow:hidden; animation:scaleIn 0.25s ease-out; font-family:'Google Sans',Roboto,Arial,sans-serif;">
+
       <!-- VIEW 1: Choose Account Screen -->
+
       <div id="google-view-choose">
+
         <div style="padding:28px 28px 16px; border-bottom:1px solid #e8eaed;">
+
           <div style="margin-bottom:12px;">
+
             <svg width="74" height="24" viewBox="0 0 74 24">
-              <path d="M9.24 8.19v2.46h5.88c-.18 1.38-.64 2.39-1.34 3.1-.86.86-2.2 1.8-4.54 1.8-3.62 0-6.45-2.92-6.45-6.54s2.83-6.54 6.45-6.54c1.95 0 3.38.77 4.43 1.76L15.4 2.5C13.94 1.08 11.98 0 9.24 0 4.28 0 .11 4.04.11 9s4.17 9 9.13 9c2.68 0 4.7-.88 6.28-2.52 1.62-1.62 2.13-3.91 2.13-5.75 0-.57-.04-1.1-.13-1.54H9.24z" fill="#4285F4"/>
-              <path d="M25 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#EA4335"/>
-              <path d="M53.58 7.49h-.09c-.57-.68-1.67-1.3-3.06-1.3C47.53 6.19 45 8.72 45 12c0 3.26 2.53 5.81 5.43 5.81 1.39 0 2.49-.62 3.06-1.32h.09v.81c0 2.22-1.19 3.4-3.1 3.4-1.56 0-2.53-1.12-2.93-2.07l-2.22.92c.64 1.54 2.33 3.43 5.15 3.43 2.99 0 5.52-1.76 5.52-6.05V6.49h-2.42v1zm-2.93 8.03c-1.76 0-3.1-1.5-3.1-3.52 0-2.05 1.34-3.52 3.1-3.52 1.74 0 3.1 1.49 3.1 3.54.01 2.03-1.36 3.5-3.1 3.5z" fill="#4285F4"/>
-              <path d="M38 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#FBBC05"/>
-              <path d="M58.93 1h2.54v16.76h-2.54z" fill="#34A853"/>
-              <path d="M63.86 12.44c-.14-.39-.57-1.11-.91-1.44l7.5-3.1c.39.99.57 1.58.57 2.1 0 1.21-.47 2.27-1.23 3.05l-5.93-.61z" fill="#EA4335"/>
+
+              <path
+
+                d="M9.24 8.19v2.46h5.88c-.18 1.38-.64 2.39-1.34 3.1-.86.86-2.2 1.8-4.54 1.8-3.62 0-6.45-2.92-6.45-6.54s2.83-6.54 6.45-6.54c1.95 0 3.38.77 4.43 1.76L15.4 2.5C13.94 1.08 11.98 0 9.24 0 4.28 0 .11 4.04.11 9s4.17 9 9.13 9c2.68 0 4.7-.88 6.28-2.52 1.62-1.62 2.13-3.91 2.13-5.75 0-.57-.04-1.1-.13-1.54H9.24z"
+
+                fill="#4285F4" />
+
+              <path
+
+                d="M25 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z"
+
+                fill="#EA4335" />
+
+              <path
+
+                d="M53.58 7.49h-.09c-.57-.68-1.67-1.3-3.06-1.3C47.53 6.19 45 8.72 45 12c0 3.26 2.53 5.81 5.43 5.81 1.39 0 2.49-.62 3.06-1.32h.09v.81c0 2.22-1.19 3.4-3.1 3.4-1.56 0-2.53-1.12-2.93-2.07l-2.22.92c.64 1.54 2.33 3.43 5.15 3.43 2.99 0 5.52-1.76 5.52-6.05V6.49h-2.42v1zm-2.93 8.03c-1.76 0-3.1-1.5-3.1-3.52 0-2.05 1.34-3.52 3.1-3.52 1.74 0 3.1 1.49 3.1 3.54.01 2.03-1.36 3.5-3.1 3.5z"
+
+                fill="#4285F4" />
+
+              <path
+
+                d="M38 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z"
+
+                fill="#FBBC05" />
+
+              <path d="M58.93 1h2.54v16.76h-2.54z" fill="#34A853" />
+
+              <path
+
+                d="M63.86 12.44c-.14-.39-.57-1.11-.91-1.44l7.5-3.1c.39.99.57 1.58.57 2.1 0 1.21-.47 2.27-1.23 3.05l-5.93-.61z"
+
+                fill="#EA4335" />
+
             </svg>
+
           </div>
+
           <div style="font-size:20px; color:#202124; font-weight:500;">Choose an account</div>
-          <div style="font-size:14px; color:#5f6368; margin-top:4px;">to continue to <span style="color:#202124; font-weight:500;">LifePulse</span></div>
+
+          <div style="font-size:14px; color:#5f6368; margin-top:4px;">to continue to <span
+
+              style="color:#202124; font-weight:500;">LifePulse</span></div>
+
         </div>
 
         <!-- Saved / Stored Accounts List -->
+
         <div style="padding:6px 0;" id="google-accounts-list">
+
           <!-- Dynamic accounts inserted here -->
+
         </div>
 
         <!-- Add Another Account Button -->
+
         <div style="padding:14px 24px; border-top:1px solid #e8eaed;">
-          <button type="button" onclick="showGoogleSignInView()" style="width:100%; background:none; border:1px solid #dadce0; border-radius:24px; padding:10px 16px; font-size:14px; color:#1a73e8; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+
+          <button type="button" onclick="showGoogleSignInView()"
+
+            style="width:100%; background:none; border:1px solid #dadce0; border-radius:24px; padding:10px 16px; font-size:14px; color:#1a73e8; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:background 0.2s;"
+
+            onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+
             <span>+ Use another account</span>
+
           </button>
+
         </div>
 
         <!-- Footer -->
-        <div style="background:#f8f9fa; padding:12px 24px; display:flex; justify-content:space-between; font-size:11px; color:#5f6368; border-top:1px solid #f1f3f4;">
+
+        <div
+
+          style="background:#f8f9fa; padding:12px 24px; display:flex; justify-content:space-between; font-size:11px; color:#5f6368; border-top:1px solid #f1f3f4;">
+
           <span>English (United States)</span>
+
           <div style="display:flex; gap:12px;">
+
             <a href="#" style="color:#5f6368; text-decoration:none;">Help</a>
+
             <a href="#" style="color:#5f6368; text-decoration:none;">Privacy</a>
+
             <a href="#" style="color:#5f6368; text-decoration:none;">Terms</a>
+
           </div>
+
         </div>
+
       </div>
 
       <!-- VIEW 2: Google Sign-in Email/Pass Form -->
+
       <div id="google-view-signin" style="display:none; padding:28px 28px 20px;">
+
         <div style="margin-bottom:16px;">
+
           <svg width="74" height="24" viewBox="0 0 74 24">
-            <path d="M9.24 8.19v2.46h5.88c-.18 1.38-.64 2.39-1.34 3.1-.86.86-2.2 1.8-4.54 1.8-3.62 0-6.45-2.92-6.45-6.54s2.83-6.54 6.45-6.54c1.95 0 3.38.77 4.43 1.76L15.4 2.5C13.94 1.08 11.98 0 9.24 0 4.28 0 .11 4.04.11 9s4.17 9 9.13 9c2.68 0 4.7-.88 6.28-2.52 1.62-1.62 2.13-3.91 2.13-5.75 0-.57-.04-1.1-.13-1.54H9.24z" fill="#4285F4"/>
-            <path d="M25 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#EA4335"/>
-            <path d="M53.58 7.49h-.09c-.57-.68-1.67-1.3-3.06-1.3C47.53 6.19 45 8.72 45 12c0 3.26 2.53 5.81 5.43 5.81 1.39 0 2.49-.62 3.06-1.32h.09v.81c0 2.22-1.19 3.4-3.1 3.4-1.56 0-2.53-1.12-2.93-2.07l-2.22.92c.64 1.54 2.33 3.43 5.15 3.43 2.99 0 5.52-1.76 5.52-6.05V6.49h-2.42v1zm-2.93 8.03c-1.76 0-3.1-1.5-3.1-3.52 0-2.05 1.34-3.52 3.1-3.52 1.74 0 3.1 1.49 3.1 3.54.01 2.03-1.36 3.5-3.1 3.5z" fill="#4285F4"/>
-            <path d="M38 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#FBBC05"/>
-            <path d="M58.93 1h2.54v16.76h-2.54z" fill="#34A853"/>
-            <path d="M63.86 12.44c-.14-.39-.57-1.11-.91-1.44l7.5-3.1c.39.99.57 1.58.57 2.1 0 1.21-.47 2.27-1.23 3.05l-5.93-.61z" fill="#EA4335"/>
+
+            <path
+
+              d="M9.24 8.19v2.46h5.88c-.18 1.38-.64 2.39-1.34 3.1-.86.86-2.2 1.8-4.54 1.8-3.62 0-6.45-2.92-6.45-6.54s2.83-6.54 6.45-6.54c1.95 0 3.38.77 4.43 1.76L15.4 2.5C13.94 1.08 11.98 0 9.24 0 4.28 0 .11 4.04.11 9s4.17 9 9.13 9c2.68 0 4.7-.88 6.28-2.52 1.62-1.62 2.13-3.91 2.13-5.75 0-.57-.04-1.1-.13-1.54H9.24z"
+
+              fill="#4285F4" />
+
+            <path
+
+              d="M25 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z"
+
+              fill="#EA4335" />
+
+            <path
+
+              d="M53.58 7.49h-.09c-.57-.68-1.67-1.3-3.06-1.3C47.53 6.19 45 8.72 45 12c0 3.26 2.53 5.81 5.43 5.81 1.39 0 2.49-.62 3.06-1.32h.09v.81c0 2.22-1.19 3.4-3.1 3.4-1.56 0-2.53-1.12-2.93-2.07l-2.22.92c.64 1.54 2.33 3.43 5.15 3.43 2.99 0 5.52-1.76 5.52-6.05V6.49h-2.42v1zm-2.93 8.03c-1.76 0-3.1-1.5-3.1-3.52 0-2.05 1.34-3.52 3.1-3.52 1.74 0 3.1 1.49 3.1 3.54.01 2.03-1.36 3.5-3.1 3.5z"
+
+              fill="#4285F4" />
+
+            <path
+
+              d="M38 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z"
+
+              fill="#FBBC05" />
+
+            <path d="M58.93 1h2.54v16.76h-2.54z" fill="#34A853" />
+
+            <path
+
+              d="M63.86 12.44c-.14-.39-.57-1.11-.91-1.44l7.5-3.1c.39.99.57 1.58.57 2.1 0 1.21-.47 2.27-1.23 3.05l-5.93-.61z"
+
+              fill="#EA4335" />
+
           </svg>
+
         </div>
-        
+
         <div style="font-size:22px; color:#202124; font-weight:500; margin-bottom:4px;">Sign in</div>
-        <div style="font-size:14px; color:#5f6368; margin-bottom:24px;">to continue to <span style="color:#202124; font-weight:500;">LifePulse</span></div>
+
+        <div style="font-size:14px; color:#5f6368; margin-bottom:24px;">to continue to <span
+
+            style="color:#202124; font-weight:500;">LifePulse</span></div>
 
         <form id="google-signin-form" onsubmit="handleGoogleCustomAccountSubmit(event)">
+
           <div style="margin-bottom:18px;">
-            <label style="display:block; font-size:12px; color:#1a73e8; font-weight:600; margin-bottom:4px;">Email or phone *</label>
+
+            <label style="display:block; font-size:12px; color:#1a73e8; font-weight:600; margin-bottom:4px;">Email or
+
+              phone *</label>
+
             <input type="text" id="google-custom-email" required placeholder="e.g. yourname@gmail.com"
+
               style="width:100%; padding:13px 14px; border:2px solid #1a73e8; border-radius:6px; font-size:15px; color:#202124; outline:none; box-sizing:border-box;" />
+
           </div>
 
           <div style="margin-bottom:18px;">
+
             <label style="display:block; font-size:12px; color:#5f6368; margin-bottom:4px;">Full Name (optional)</label>
+
             <input type="text" id="google-custom-name" placeholder="e.g. John Doe"
+
               style="width:100%; padding:13px 14px; border:1px solid #dadce0; border-radius:6px; font-size:15px; color:#202124; outline:none; box-sizing:border-box;" />
+
           </div>
 
           <div style="font-size:13px; color:#5f6368; margin-bottom:28px; line-height:1.4;">
-            Not your computer? Use a private window to sign in securely. <a href="#" style="color:#1a73e8; text-decoration:none; font-weight:500;">Learn more</a>
+
+            Not your computer? Use a private window to sign in securely. <a href="#"
+
+              style="color:#1a73e8; text-decoration:none; font-weight:500;">Learn more</a>
+
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <button type="button" onclick="showGoogleChooseView()" style="background:none; border:none; color:#1a73e8; font-size:14px; font-weight:600; cursor:pointer; padding:8px 0;">
-              ← Back to accounts
+
+            <button type="button" onclick="showGoogleChooseView()"
+
+              style="background:none; border:none; color:#1a73e8; font-size:14px; font-weight:600; cursor:pointer; padding:8px 0;">
+
+              â† Back to accounts
+
             </button>
-            <button type="submit" style="background:#1a73e8; color:#fff; border:none; border-radius:24px; padding:10px 24px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition:background 0.2s;" onmouseover="this.style.background='#1557b0'" onmouseout="this.style.background='#1a73e8'">
+
+            <button type="submit"
+
+              style="background:#1a73e8; color:#fff; border:none; border-radius:24px; padding:10px 24px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition:background 0.2s;"
+
+              onmouseover="this.style.background='#1557b0'" onmouseout="this.style.background='#1a73e8'">
+
               Next
+
             </button>
+
           </div>
+
         </form>
+
       </div>
 
       <!-- VIEW 3: Google 2-Step Verification Code Screen -->
+
       <div id="google-view-verify" style="display:none; padding:28px 28px 22px;">
+
         <div style="margin-bottom:14px;">
+
           <svg width="74" height="24" viewBox="0 0 74 24">
-            <path d="M9.24 8.19v2.46h5.88c-.18 1.38-.64 2.39-1.34 3.1-.86.86-2.2 1.8-4.54 1.8-3.62 0-6.45-2.92-6.45-6.54s2.83-6.54 6.45-6.54c1.95 0 3.38.77 4.43 1.76L15.4 2.5C13.94 1.08 11.98 0 9.24 0 4.28 0 .11 4.04.11 9s4.17 9 9.13 9c2.68 0 4.7-.88 6.28-2.52 1.62-1.62 2.13-3.91 2.13-5.75 0-.57-.04-1.1-.13-1.54H9.24z" fill="#4285F4"/>
-            <path d="M25 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#EA4335"/>
-            <path d="M53.58 7.49h-.09c-.57-.68-1.67-1.3-3.06-1.3C47.53 6.19 45 8.72 45 12c0 3.26 2.53 5.81 5.43 5.81 1.39 0 2.49-.62 3.06-1.32h.09v.81c0 2.22-1.19 3.4-3.1 3.4-1.56 0-2.53-1.12-2.93-2.07l-2.22.92c.64 1.54 2.33 3.43 5.15 3.43 2.99 0 5.52-1.76 5.52-6.05V6.49h-2.42v1zm-2.93 8.03c-1.76 0-3.1-1.5-3.1-3.52 0-2.05 1.34-3.52 3.1-3.52 1.74 0 3.1 1.49 3.1 3.54.01 2.03-1.36 3.5-3.1 3.5z" fill="#4285F4"/>
-            <path d="M38 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z" fill="#FBBC05"/>
-            <path d="M58.93 1h2.54v16.76h-2.54z" fill="#34A853"/>
-            <path d="M63.86 12.44c-.14-.39-.57-1.11-.91-1.44l7.5-3.1c.39.99.57 1.58.57 2.1 0 1.21-.47 2.27-1.23 3.05l-5.93-.61z" fill="#EA4335"/>
+
+            <path
+
+              d="M9.24 8.19v2.46h5.88c-.18 1.38-.64 2.39-1.34 3.1-.86.86-2.2 1.8-4.54 1.8-3.62 0-6.45-2.92-6.45-6.54s2.83-6.54 6.45-6.54c1.95 0 3.38.77 4.43 1.76L15.4 2.5C13.94 1.08 11.98 0 9.24 0 4.28 0 .11 4.04.11 9s4.17 9 9.13 9c2.68 0 4.7-.88 6.28-2.52 1.62-1.62 2.13-3.91 2.13-5.75 0-.57-.04-1.1-.13-1.54H9.24z"
+
+              fill="#4285F4" />
+
+            <path
+
+              d="M25 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z"
+
+              fill="#EA4335" />
+
+            <path
+
+              d="M53.58 7.49h-.09c-.57-.68-1.67-1.3-3.06-1.3C47.53 6.19 45 8.72 45 12c0 3.26 2.53 5.81 5.43 5.81 1.39 0 2.49-.62 3.06-1.32h.09v.81c0 2.22-1.19 3.4-3.1 3.4-1.56 0-2.53-1.12-2.93-2.07l-2.22.92c.64 1.54 2.33 3.43 5.15 3.43 2.99 0 5.52-1.76 5.52-6.05V6.49h-2.42v1zm-2.93 8.03c-1.76 0-3.1-1.5-3.1-3.52 0-2.05 1.34-3.52 3.1-3.52 1.74 0 3.1 1.49 3.1 3.54.01 2.03-1.36 3.5-3.1 3.5z"
+
+              fill="#4285F4" />
+
+            <path
+
+              d="M38 6.19c-3.21 0-5.83 2.44-5.83 5.81 0 3.34 2.62 5.81 5.83 5.81s5.83-2.46 5.83-5.81c0-3.37-2.62-5.81-5.83-5.81zm0 9.33c-1.76 0-3.28-1.45-3.28-3.52 0-2.09 1.52-3.52 3.28-3.52s3.28 1.43 3.28 3.52c0 2.07-1.52 3.52-3.28 3.52z"
+
+              fill="#FBBC05" />
+
+            <path d="M58.93 1h2.54v16.76h-2.54z" fill="#34A853" />
+
+            <path
+
+              d="M63.86 12.44c-.14-.39-.57-1.11-.91-1.44l7.5-3.1c.39.99.57 1.58.57 2.1 0 1.21-.47 2.27-1.23 3.05l-5.93-.61z"
+
+              fill="#EA4335" />
+
           </svg>
+
         </div>
-        
+
         <div style="font-size:22px; color:#202124; font-weight:500; margin-bottom:4px;">2-Step Verification</div>
+
         <div style="font-size:13px; color:#5f6368; margin-bottom:16px; line-height:1.45;">
-          To help protect your account, Google wants to make sure it's really you. A 6-digit verification code has been sent to <b id="google-verify-email-display" style="color:#202124;">user@gmail.com</b>.
+
+          To help protect your account, Google wants to make sure it's really you. A 6-digit verification code has been
+
+          sent to <b id="google-verify-email-display" style="color:#202124;">user@gmail.com</b>.
+
         </div>
 
         <form id="google-verify-form" onsubmit="handleGoogleVerificationSubmit(event)">
-          <div style="background:#f8f9fa; border:1px solid #dadce0; border-radius:10px; padding:14px; margin-bottom:18px; text-align:center;">
-            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#5f6368; font-weight:600; margin-bottom:6px;">Enter 6-digit code</div>
+
+          <div
+
+            style="background:#f8f9fa; border:1px solid #dadce0; border-radius:10px; padding:14px; margin-bottom:18px; text-align:center;">
+
+            <div
+
+              style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:#5f6368; font-weight:600; margin-bottom:6px;">
+
+              Enter 6-digit code</div>
+
             <div style="display:flex; align-items:center; justify-content:center; gap:8px;">
+
               <span style="font-size:18px; font-weight:700; color:#5f6368;">G -</span>
+
               <input type="text" id="google-otp-input" maxlength="6" value="482910" required
+
                 style="width:160px; padding:8px 12px; font-size:20px; font-weight:700; letter-spacing:4px; text-align:center; border:2px solid #1a73e8; border-radius:6px; outline:none; color:#1a73e8;" />
+
             </div>
-            <div style="font-size:11px; color:#10b981; font-weight:600; margin-top:6px;">✓ Auto-generated verification code ready</div>
+
+            <div style="font-size:11px; color:#10b981; font-weight:600; margin-top:6px;">âœ“ Auto-generated verification
+
+              code ready</div>
+
           </div>
 
-          <div style="font-size:12px; color:#5f6368; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center;">
+          <div
+
+            style="font-size:12px; color:#5f6368; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center;">
+
             <span>Didn't receive code?</span>
-            <button type="button" onclick="regenerateGoogleCode()" style="background:none; border:none; color:#1a73e8; font-weight:600; font-size:12px; cursor:pointer;">Resend code</button>
+
+            <button type="button" onclick="regenerateGoogleCode()"
+
+              style="background:none; border:none; color:#1a73e8; font-weight:600; font-size:12px; cursor:pointer;">Resend
+
+              code</button>
+
           </div>
 
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <button type="button" onclick="showGoogleChooseView()" style="background:none; border:none; color:#1a73e8; font-size:14px; font-weight:600; cursor:pointer; padding:8px 0;">
-              ← Back
+
+            <button type="button" onclick="showGoogleChooseView()"
+
+              style="background:none; border:none; color:#1a73e8; font-size:14px; font-weight:600; cursor:pointer; padding:8px 0;">
+
+              â† Back
+
             </button>
-            <button type="submit" style="background:#1a73e8; color:#fff; border:none; border-radius:24px; padding:10px 24px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition:background 0.2s;" onmouseover="this.style.background='#1557b0'" onmouseout="this.style.background='#1a73e8'">
+
+            <button type="submit"
+
+              style="background:#1a73e8; color:#fff; border:none; border-radius:24px; padding:10px 24px; font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition:background 0.2s;"
+
+              onmouseover="this.style.background='#1557b0'" onmouseout="this.style.background='#1a73e8'">
+
               Verify & Sign In
+
             </button>
+
           </div>
+
         </form>
+
       </div>
 
     </div>
+
   </div>
 
-  <!-- ══════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
        Facebook Account Picker & Sign-in Modal (Realistic UI)
-  ══════════════════════════════════════════════ -->
-  <div class="modal-overlay" id="facebook-account-picker" style="z-index:10000;" onclick="if(event.target===this)closeFacebookPicker()">
-    <div style="background:#fff; border-radius:20px; padding:0; width:400px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.6); overflow:hidden; animation:scaleIn 0.25s ease-out; font-family:Helvetica, Arial, sans-serif;">
-      
+
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+
+  <div class="modal-overlay" id="facebook-account-picker" style="z-index:10000;"
+
+    onclick="if(event.target===this)closeFacebookPicker()">
+
+    <div
+
+      style="background:#fff; border-radius:20px; padding:0; width:400px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.6); overflow:hidden; animation:scaleIn 0.25s ease-out; font-family:Helvetica, Arial, sans-serif;">
+
       <!-- Facebook Header -->
-      <div style="background:#1877f2; padding:18px 24px; color:#fff; display:flex; align-items:center; justify-content:space-between;">
+
+      <div
+
+        style="background:#1877f2; padding:18px 24px; color:#fff; display:flex; align-items:center; justify-content:space-between;">
+
         <div style="display:flex; align-items:center; gap:8px;">
+
           <svg width="28" height="28" viewBox="0 0 24 24" fill="#ffffff">
-            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+
+            <path
+
+              d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+
           </svg>
+
           <span style="font-weight:700; font-size:18px;">facebook</span>
+
         </div>
-        <button onclick="closeFacebookPicker()" style="background:none; border:none; color:#fff; font-size:22px; cursor:pointer;">&times;</button>
+
+        <button onclick="closeFacebookPicker()"
+
+          style="background:none; border:none; color:#fff; font-size:22px; cursor:pointer;">&times;</button>
+
       </div>
 
       <div style="padding:24px;">
+
         <div style="font-size:16px; color:#1c1e21; font-weight:600; margin-bottom:6px;">Log in with Facebook</div>
-        <div style="font-size:13px; color:#606770; margin-bottom:20px;">LifePulse is requesting access to your name and email address.</div>
+
+        <div style="font-size:13px; color:#606770; margin-bottom:20px;">LifePulse is requesting access to your name and
+
+          email address.</div>
 
         <!-- Dynamic Suggested Profile Container (if logged in before) -->
+
         <div id="facebook-suggested-box" style="display:none;"></div>
 
         <!-- Facebook custom login inputs -->
+
         <div id="facebook-custom-box">
+
           <div style="margin-bottom:12px;">
-            <label style="display:block; font-size:12px; color:#606770; margin-bottom:4px; font-weight:600;">Mobile number or email</label>
-            <input type="text" id="fb-custom-email" placeholder="e.g. yourname@gmail.com" style="width:100%; padding:11px 12px; border:1px solid #ccd0d5; border-radius:6px; font-size:14px; box-sizing:border-box;" />
+
+            <label style="display:block; font-size:12px; color:#606770; margin-bottom:4px; font-weight:600;">Mobile
+
+              number or email</label>
+
+            <input type="text" id="fb-custom-email" placeholder="e.g. yourname@gmail.com"
+
+              style="width:100%; padding:11px 12px; border:1px solid #ccd0d5; border-radius:6px; font-size:14px; box-sizing:border-box;" />
+
           </div>
+
           <div style="margin-bottom:16px;">
-            <label style="display:block; font-size:12px; color:#606770; margin-bottom:4px; font-weight:600;">Full Name (optional)</label>
-            <input type="text" id="fb-custom-name" placeholder="e.g. John Doe" style="width:100%; padding:11px 12px; border:1px solid #ccd0d5; border-radius:6px; font-size:14px; box-sizing:border-box;" />
+
+            <label style="display:block; font-size:12px; color:#606770; margin-bottom:4px; font-weight:600;">Full Name
+
+              (optional)</label>
+
+            <input type="text" id="fb-custom-name" placeholder="e.g. John Doe"
+
+              style="width:100%; padding:11px 12px; border:1px solid #ccd0d5; border-radius:6px; font-size:14px; box-sizing:border-box;" />
+
           </div>
-          <button type="button" onclick="handleFacebookCustomSubmit()" style="width:100%; background:#1877f2; color:#fff; border:none; border-radius:6px; padding:12px; font-weight:700; font-size:15px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#166fe5'" onmouseout="this.style.background='#1877f2'">
+
+          <button type="button" onclick="handleFacebookCustomSubmit()"
+
+            style="width:100%; background:#1877f2; color:#fff; border:none; border-radius:6px; padding:12px; font-weight:700; font-size:15px; cursor:pointer; transition:background 0.2s;"
+
+            onmouseover="this.style.background='#166fe5'" onmouseout="this.style.background='#1877f2'">
+
             Log In with Facebook
+
           </button>
+
         </div>
+
       </div>
 
     </div>
+
   </div>
 
-  <!-- ══════════════════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
        User Profile Modal (shown after login)
-  ══════════════════════════════════════════════ -->
+
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+
   <div class="modal-overlay" id="profile-modal" onclick="if(event.target===this)closeProfileModal()">
-    <div style="background:linear-gradient(145deg,#0d1117,#161b26); border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:0; width:400px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.8); overflow:hidden; animation:scaleIn 0.25s ease-out;">
+
+    <div
+
+      style="background:linear-gradient(145deg,#0d1117,#161b26); border:1px solid rgba(255,255,255,0.12); border-radius:24px; padding:0; width:400px; max-width:95vw; box-shadow:0 24px 64px rgba(0,0,0,0.8); overflow:hidden; animation:scaleIn 0.25s ease-out;">
+
       <!-- Profile Header -->
-      <div style="background:linear-gradient(135deg,#e63946,#9b111e); padding:2rem 1.5rem 1.5rem; text-align:center; position:relative;">
-        <button onclick="closeProfileModal()" style="position:absolute; top:1rem; right:1rem; background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">&times;</button>
-        
+
+      <div
+
+        style="background:linear-gradient(135deg,#e63946,#9b111e); padding:2rem 1.5rem 1.5rem; text-align:center; position:relative;">
+
+        <button onclick="closeProfileModal()"
+
+          style="position:absolute; top:1rem; right:1rem; background:rgba(255,255,255,0.2); border:none; color:#fff; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; transition:background 0.2s;"
+
+          onmouseover="this.style.background='rgba(255,255,255,0.35)'"
+
+          onmouseout="this.style.background='rgba(255,255,255,0.2)'">&times;</button>
+
         <!-- Large Avatar with glowing ring -->
-        <div id="profile-avatar-large" style="width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.2); margin:0 auto 0.75rem; border:3px solid #ffffff; box-shadow:0 0 20px rgba(0,0,0,0.4); overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:2.2rem; font-weight:800; color:#fff;">
+
+        <div id="profile-avatar-large"
+
+          style="width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.2); margin:0 auto 0.75rem; border:3px solid #ffffff; box-shadow:0 0 20px rgba(0,0,0,0.4); overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:2.2rem; font-weight:800; color:#fff;">
+
           <span id="profile-avatar-letter">U</span>
+
           <img id="profile-avatar-photo" src="" style="width:100%;height:100%;object-fit:cover;display:none;" />
+
         </div>
-        
-        <div id="profile-display-name" style="font-weight:800; font-size:1.35rem; color:#fff; letter-spacing:-0.3px;">User Name</div>
-        <div id="profile-display-email" style="font-size:0.88rem; color:rgba(255,255,255,0.85); margin-top:0.2rem; word-break:break-all;">user@email.com</div>
-        <div id="profile-provider-badge" style="margin-top:0.6rem; display:inline-flex; align-items:center; gap:0.35rem; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.2); border-radius:20px; padding:3px 14px; font-size:0.75rem; color:#fff; font-weight:600;">
-          🟢 Google Account
+
+        <div id="profile-display-name" style="font-weight:800; font-size:1.35rem; color:#fff; letter-spacing:-0.3px;">
+
+          User Name</div>
+
+        <div id="profile-display-email"
+
+          style="font-size:0.88rem; color:rgba(255,255,255,0.85); margin-top:0.2rem; word-break:break-all;">
+
+          user@email.com</div>
+
+        <div id="profile-provider-badge"
+
+          style="margin-top:0.6rem; display:inline-flex; align-items:center; gap:0.35rem; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.2); border-radius:20px; padding:3px 14px; font-size:0.75rem; color:#fff; font-weight:600;">
+
+          ðŸŸ¢ Google Account
+
         </div>
+
       </div>
 
       <!-- Account Details & Information -->
+
       <div style="padding:1.4rem 1.5rem;">
-        
+
         <!-- Detailed Information List -->
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:0.9rem 1rem; margin-bottom:1.2rem; display:flex; flex-direction:column; gap:0.65rem;">
+
+        <div
+
+          style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:0.9rem 1rem; margin-bottom:1.2rem; display:flex; flex-direction:column; gap:0.65rem;">
+
           <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem;">
-            <span style="color:#9ca3af;">👤 Account ID</span>
+
+            <span style="color:#9ca3af;">ðŸ‘¤ Account ID</span>
+
             <span id="profile-account-id" style="font-weight:700; color:#f3f4f6;">#LP-1049</span>
+
           </div>
+
           <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem;">
+
             <span style="color:#9ca3af;">🔒 Login Method</span>
+
             <span id="profile-login-method" style="font-weight:700; color:#f3f4f6;">Google SSO</span>
+
           </div>
+
           <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem;">
-            <span style="color:#9ca3af;">🛡️ Verification Status</span>
-            <span style="color:#10b981; font-weight:700; display:flex; align-items:center; gap:0.3rem;">✓ Verified Donor</span>
+
+            <span style="color:#9ca3af;">ðŸ›¡ï¸ Verification Status</span>
+
+            <span style="color:#10b981; font-weight:700; display:flex; align-items:center; gap:0.3rem;">âœ“ Verified
+
+              Donor</span>
+
           </div>
+
           <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.82rem;">
-            <span style="color:#9ca3af;">📍 Detected City</span>
+
+            <span style="color:#9ca3af;">ðŸ“ Detected City</span>
+
             <span id="profile-user-city" style="font-weight:700; color:#f3f4f6;">Chennai, TN</span>
+
           </div>
+
         </div>
 
         <!-- Activity Stats -->
+
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.6rem; margin-bottom:1.25rem;">
-          <div style="text-align:center; background:rgba(230,57,70,0.08); border:1px solid rgba(230,57,70,0.2); border-radius:12px; padding:0.65rem 0.4rem;">
+
+          <div
+
+            style="text-align:center; background:rgba(230,57,70,0.08); border:1px solid rgba(230,57,70,0.2); border-radius:12px; padding:0.65rem 0.4rem;">
+
             <div style="font-size:1.3rem; font-weight:800; color:#e63946;">Active</div>
+
             <div style="font-size:0.68rem; color:#9ca3af; margin-top:2px;">Donor Status</div>
+
           </div>
-          <div style="text-align:center; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:12px; padding:0.65rem 0.4rem;">
+
+          <div
+
+            style="text-align:center; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:12px; padding:0.65rem 0.4rem;">
+
             <div id="profile-stat-campaigns" style="font-size:1.3rem; font-weight:800; color:#10b981;">3</div>
+
             <div style="font-size:0.68rem; color:#9ca3af; margin-top:2px;">Campaigns</div>
+
           </div>
-          <div style="text-align:center; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:0.65rem 0.4rem;">
+
+          <div
+
+            style="text-align:center; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:0.65rem 0.4rem;">
+
             <div style="font-size:1.3rem; font-weight:800; color:#f59e0b;">100%</div>
+
             <div style="font-size:0.68rem; color:#9ca3af; margin-top:2px;">Reliability</div>
+
           </div>
+
         </div>
 
         <!-- Action Buttons -->
-        <button onclick="switchRole('donor'); closeProfileModal();" style="width:100%; background:linear-gradient(135deg,#e63946,#c1121f); border:none; border-radius:12px; padding:0.8rem; color:#fff; font-weight:700; font-size:0.9rem; cursor:pointer; margin-bottom:0.6rem; transition:transform 0.15s, box-shadow 0.15s; box-shadow:0 4px 14px rgba(230,57,70,0.3);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+
+        <button onclick="switchRole('donor'); closeProfileModal();"
+
+          style="width:100%; background:linear-gradient(135deg,#e63946,#c1121f); border:none; border-radius:12px; padding:0.8rem; color:#fff; font-weight:700; font-size:0.9rem; cursor:pointer; margin-bottom:0.6rem; transition:transform 0.15s, box-shadow 0.15s; box-shadow:0 4px 14px rgba(230,57,70,0.3);"
+
+          onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+
           🩸 Go to Blood Donation Workspace
+
         </button>
-        <button onclick="handleLogout()" style="width:100%; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:12px; padding:0.75rem; color:#ef4444; font-weight:700; font-size:0.88rem; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.18)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">
-          🚪 Sign Out
+
+        <button onclick="handleLogout()"
+
+          style="width:100%; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:12px; padding:0.75rem; color:#ef4444; font-weight:700; font-size:0.88rem; cursor:pointer; transition:background 0.2s;"
+
+          onmouseover="this.style.background='rgba(239,68,68,0.18)'"
+
+          onmouseout="this.style.background='rgba(239,68,68,0.08)'">
+
+          ðŸšª Sign Out
+
         </button>
+
       </div>
+
     </div>
+
   </div>
 
   <!-- Login / Switch Account Modal (Matching Picture 2 Design & App Theme) -->
+
   <div class="modal-overlay" id="login-modal">
+
     <div class="glass-panel modal-content login-modal-card">
+
       <div class="modal-header-minimal">
+
         <button class="close-btn-minimal" onclick="closeLoginModal()">&times;</button>
+
       </div>
 
       <div class="login-header-area">
+
         <h2 class="login-title">Welcome back</h2>
+
         <p class="login-subtitle">Please Enter your Account details</p>
+
       </div>
 
       <form id="login-form" onsubmit="handleLoginSubmit(event)">
+
         <div class="form-group" style="margin-bottom: 1.1rem;">
+
           <label class="form-label-minimal">Email</label>
+
           <input type="email" id="login-email-input" class="form-input-pill" placeholder="johndoe@gmail.com" />
+
         </div>
 
         <div class="form-group" style="margin-bottom: 1.1rem;">
+
           <label class="form-label-minimal">Password</label>
+
           <input type="password" id="login-pass-input" class="form-input-pill" placeholder="••••••••" />
+
         </div>
 
         <div class="login-controls-row">
+
           <label class="keep-logged-lbl">
+
             <input type="checkbox" checked /> Keep me logged in
+
           </label>
+
           <a href="#" class="forgot-pass-link"
+
             onclick="alert('Password reset link sent to your registered email.')">Forgot Password</a>
+
         </div>
 
         <button type="submit" class="login-signin-btn">
+
           Sign in
+
         </button>
 
         <button type="button" class="guest-account-btn" onclick="handleGuestLogin()">
-          👤 Continue as Guest Account
+
+          ðŸ‘¤ Continue as Guest Account
+
         </button>
 
         <div class="social-sso-row">
+
           <!-- Google OAuth Button -->
-          <button type="button" class="social-btn" title="Sign in with Google" id="google-signin-btn" onclick="handleGoogleLogin()">
+
+          <button type="button" class="social-btn" title="Sign in with Google" id="google-signin-btn"
+
+            onclick="handleGoogleLogin()">
+
             <svg width="20" height="20" viewBox="0 0 24 24">
-              <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z" />
-              <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z" />
-              <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15s.7 5.3 1.9 7.7l3.7-2.9z" />
-              <path fill="#34A853" d="M12 23c3.2 0 6.1-1.1 8.31-3.7l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z" />
+
+              <path fill="#EA4335"
+
+                d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z" />
+
+              <path fill="#4285F4"
+
+                d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z" />
+
+              <path fill="#FBBC05"
+
+                d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15s.7 5.3 1.9 7.7l3.7-2.9z" />
+
+              <path fill="#34A853"
+
+                d="M12 23c3.2 0 6.1-1.1 8.31-3.7l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z" />
+
             </svg>
+
           </button>
 
           <!-- Facebook Login Button -->
-          <button type="button" class="social-btn" title="Sign in with Facebook" id="facebook-signin-btn" onclick="handleFacebookLogin()">
+
+          <button type="button" class="social-btn" title="Sign in with Facebook" id="facebook-signin-btn"
+
+            onclick="handleFacebookLogin()">
+
             <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+
+              <path
+
+                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+
             </svg>
+
           </button>
+
         </div>
 
         <!-- Hidden Google One-Tap div -->
-        <div id="g_id_onload"
-          data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
-          data-callback="handleGoogleCredentialResponse"
-          data-auto_prompt="false">
+
+        <div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+
+          data-callback="handleGoogleCredentialResponse" data-auto_prompt="false">
+
         </div>
+
     </div>
+
     </form>
+
   </div>
+
   </div>
 
   <!-- Update / Create Campaign Modal -->
+
   <div class="modal-overlay" id="update-campaign-modal">
+
     <div class="glass-panel modal-content" style="max-width: 650px;">
+
       <div class="modal-header">
-        <h3 style="font-family: var(--font-heading); font-size: 1.25rem;">✏️ Update / Create Blood Campaign</h3>
+
+        <h3 style="font-family: var(--font-heading); font-size: 1.25rem;">âœï¸ Update / Create Blood Campaign</h3>
+
         <button class="close-btn" onclick="closeUpdateCampaignModal()">&times;</button>
+
       </div>
 
       <form id="campaign-form" onsubmit="handleCampaignSubmit(event)">
 
         <div class="form-group">
+
           <label class="form-label">Target Campaign Action</label>
+
           <select id="camp-select-id" class="form-select" onchange="populateCampaignFormFields(this.value)">
+
             <option value="new">+ Create New Active Campaign Drive</option>
+
             <!-- Dynamically populated existing campaigns -->
+
           </select>
+
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+
           <div class="form-group">
+
             <label class="form-label">Campaign Title *</label>
+
             <input type="text" id="camp-title" class="form-input" placeholder="e.g. Midtown Emergency Blood Drive"
+
               required />
+
           </div>
+
           <div class="form-group">
+
             <label class="form-label">Organizer / Hospital Name *</label>
+
             <input type="text" id="camp-organizer" class="form-input" placeholder="e.g. Mount Sinai Hospital"
+
               required />
+
           </div>
+
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+
           <div class="form-group">
+
             <label class="form-label">City & Address *</label>
+
             <input type="text" id="camp-address" class="form-input" placeholder="e.g. 1468 Madison Ave, New York"
+
               required />
+
           </div>
+
           <div class="form-group">
+
             <label class="form-label">Quick Location Preset</label>
+
             <select id="camp-location-preset" class="form-select" onchange="applyLocationPreset(this.value)">
+
               <option value="custom">Custom Coordinates</option>
+
               <option value="mount_sinai" selected>Mount Sinai Hospital (40.7890, -73.9548)</option>
+
               <option value="bellevue">Bellevue Hospital (40.7391, -73.9754)</option>
+
               <option value="times_square">Times Square NYC (40.7580, -73.9855)</option>
+
               <option value="brooklyn">Brooklyn Heights (40.6958, -73.9936)</option>
+
             </select>
+
           </div>
+
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+
           <div class="form-group">
+
             <label class="form-label">Latitude</label>
+
             <input type="number" step="0.0001" id="camp-lat" class="form-input" value="40.7890" required />
+
           </div>
+
           <div class="form-group">
+
             <label class="form-label">Longitude</label>
+
             <input type="number" step="0.0001" id="camp-lon" class="form-input" value="-73.9548" required />
+
           </div>
+
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+
           <div class="form-group">
+
             <label class="form-label">Target Units (Pints) *</label>
+
             <input type="number" id="camp-target" class="form-input" value="100" min="10" max="1000" required />
+
           </div>
+
           <div class="form-group">
+
             <label class="form-label">Already Collected Units</label>
+
             <input type="number" id="camp-collected" class="form-input" value="42" min="0" max="1000" required />
+
           </div>
+
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+
           <div class="form-group">
+
             <label class="form-label">Start Date *</label>
+
             <input type="date" id="camp-start-date" class="form-input" required />
+
           </div>
+
           <div class="form-group">
+
             <label class="form-label">End Date *</label>
+
             <input type="date" id="camp-end-date" class="form-input" required />
+
           </div>
+
         </div>
 
         <div class="form-group">
+
           <label class="form-label">Contact Phone Number *</label>
+
           <input type="tel" id="camp-phone" class="form-input" placeholder="+1 212-241-6500" required />
+
         </div>
 
         <div class="form-group">
+
           <label class="form-label">Blood Types Urgently Needed</label>
+
           <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem;" id="camp-bloodtypes-chips">
+
             <label class="blood-chip-lbl"><input type="checkbox" value="O-" checked /> O-</label>
+
             <label class="blood-chip-lbl"><input type="checkbox" value="O+" checked /> O+</label>
+
             <label class="blood-chip-lbl"><input type="checkbox" value="A+" checked /> A+</label>
+
             <label class="blood-chip-lbl"><input type="checkbox" value="A-" /> A-</label>
+
             <label class="blood-chip-lbl"><input type="checkbox" value="B+" /> B+</label>
+
             <label class="blood-chip-lbl"><input type="checkbox" value="B-" checked /> B-</label>
+
             <label class="blood-chip-lbl"><input type="checkbox" value="AB+" /> AB+</label>
+
             <label class="blood-chip-lbl"><input type="checkbox" value="AB-" /> AB-</label>
+
           </div>
+
         </div>
 
         <div class="form-group">
+
           <label class="form-label">Description & Donor Instructions</label>
+
           <textarea id="camp-desc" class="form-textarea" rows="3"
+
             placeholder="Community blood drive details, incentives, health check pre-requisites..."></textarea>
+
         </div>
 
         <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
-          <span>🚀</span> Publish & Update Campaign Drive
+
+          <span>ðŸš€</span> Publish & Update Campaign Drive
+
         </button>
+
       </form>
+
     </div>
+
   </div>
 
   <!-- Notification Drawer Modal -->
+
   <div class="modal-overlay" id="notif-modal">
+
     <div class="glass-panel modal-content">
+
       <div class="modal-header">
-        <h3 style="font-family: var(--font-heading); font-size: 1.2rem;">📲 Dispatch Notification Center (Twilio & FCM)
+
+        <h3 style="font-family:var(--font-heading); font-size:1.1rem; color:var(--text-primary); font-weight:800;">ðŸ“² Dispatch Notification Center (Twilio & FCM)
+
         </h3>
+
         <button class="close-btn" onclick="toggleNotifDrawer()">&times;</button>
+
       </div>
+
       <div id="notif-list-container">
+
         <p style="color: var(--text-muted); font-size: 0.85rem;">No recent notifications.</p>
+
       </div>
+
     </div>
+
   </div>
 
   <!-- Match Candidates Modal -->
+
   <div class="modal-overlay" id="match-modal">
+
     <div class="glass-panel modal-content">
+
       <div class="modal-header">
-        <h3 style="font-family: var(--font-heading); font-size: 1.2rem;" id="match-modal-title">Matched Candidate Donors
+
+        <h3 style="font-family:var(--font-heading); font-size:1.1rem; color:var(--text-primary); font-weight:800;" id="match-modal-title">Matched Candidate Donors
+
         </h3>
+
         <button class="close-btn" onclick="closeMatchModal()">&times;</button>
+
       </div>
+
       <div id="match-list-container">
+
         <!-- Dynamically populated -->
+
       </div>
+
     </div>
+
   </div>
 
   <script src="/static/app.js"></script>
+
+
+  <!-- ═══ PULSE SOS FLOATING WIDGET ═══ -->
+  <div id="pulse-sos-widget" class="pulse-sos-widget" title="Hold 2 seconds for Emergency SOS">
+    <svg class="sos-ring sos-ring-1" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/></svg>
+    <svg class="sos-ring sos-ring-2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/></svg>
+    <button class="sos-core-btn" id="sos-core-btn"
+      onmousedown="startSOSHold(event)" ontouchstart="startSOSHold(event)"
+      onmouseup="cancelSOSHold()" onmouseleave="cancelSOSHold()"
+      ontouchend="cancelSOSHold()" ontouchcancel="cancelSOSHold()">
+      <div class="sos-progress-ring">
+        <svg viewBox="0 0 60 60">
+          <circle class="sos-progress-track" cx="30" cy="30" r="26"/>
+          <circle class="sos-progress-fill" id="sos-progress-circle" cx="30" cy="30" r="26"/>
+        </svg>
+      </div>
+      <span class="sos-icon">🆘</span>
+      <span class="sos-label">PULSE<br>SOS</span>
+    </button>
+    <div class="sos-hint" id="sos-hint-text">Hold 2s</div>
+  </div>
+
+  <!-- SOS Confirm Modal -->
+  <div class="modal-overlay" id="sos-confirm-modal">
+    <div class="glass-panel modal-content" style="max-width:400px; text-align:center;">
+      <div style="font-size:3rem; margin-bottom:0.75rem;">🚨</div>
+      <h3 style="font-family:var(--font-heading); font-size:1.3rem; color:var(--red); font-weight:800; margin-bottom:0.5rem;">PULSE SOS Activated!</h3>
+      <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.2rem;" id="sos-confirm-details">
+        Sending emergency blood request based on your profile...
+      </p>
+      <div class="sos-status-steps" id="sos-status-steps">
+        <div class="sos-step" id="sos-step-1">📍 Detecting your location...</div>
+        <div class="sos-step" id="sos-step-2" style="opacity:0.3;">🩸 Matching blood group from profile...</div>
+        <div class="sos-step" id="sos-step-3" style="opacity:0.3;">📡 Broadcasting to nearby donors...</div>
+        <div class="sos-step" id="sos-step-4" style="opacity:0.3;">✅ Request sent successfully!</div>
+      </div>
+      <button class="btn-secondary" style="margin-top:1.2rem; width:100%;" onclick="cancelSOSModal()">Cancel SOS</button>
+    </div>
+  </div>
+
 </body>
 
 </html>
+
