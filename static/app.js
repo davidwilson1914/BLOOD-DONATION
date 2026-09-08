@@ -2424,7 +2424,7 @@ function parseVoiceToForm(text) {
 // ═══════════════════════════════════════════════════════════════════
 // FEATURE 4: SMART DONATION ELIGIBILITY CALCULATOR
 // ═══════════════════════════════════════════════════════════════════
-let eligAnswers = { step1: null, step2: null, step3: null };
+let eligAnswers = { step1: null, step2: null, step3: null, step4: null, step5: null };
 
 function toggleEligibilityWizard() {
   const wizard = document.getElementById('eligibility-wizard');
@@ -2479,9 +2479,41 @@ function selectEligStep3(answer) {
     new Date(), true, 0);
 }
 
-function showEligResult(type, title, message, eligibleFrom, showCalendar, daysToWait) {
+
+function selectEligStep4(answer) {
+  eligAnswers.step4 = answer;
+  if (answer === 'yes') {
+    showEligResult('warning',
+      '🩺 Postpone Donation',
+      'If you had a fever or illness recently, please wait until you are fully recovered and symptom-free for at least 14 days.',
+      null, false, 14);
+    return;
+  }
+  document.getElementById('elig-step-4').style.display = 'none';
+  document.getElementById('elig-step-5').style.display = 'block';
+}
+
+function selectEligStep5() {
+  const fileInput = document.getElementById('elig-proof-upload');
+  if (!fileInput.files || fileInput.files.length === 0) {
+    alert("Please select a file to upload as proof of your last donation (or ID).");
+    return;
+  }
+  eligAnswers.step5 = true;
+  document.getElementById('elig-verify-loader').style.display = 'block';
+  
+  setTimeout(() => {
+    document.getElementById('elig-verify-loader').style.display = 'none';
+    showEligResult('eligible',
+      '🎉 Verification Complete! You Are Eligible to Donate Today!',
+      'Your proof of donation has been verified. You meet all eligibility criteria. Your blood donation can save up to 3 lives. Register now or visit a nearby camp!',
+      new Date(), true, 0, true);
+  }, 2000);
+}
+
+function showEligResult(type, title, message, eligibleFrom, showCalendar, daysToWait, showTips = false) {
   // Hide all steps, show result
-  for (let i = 1; i <= 3; i++) {
+  for (let i = 1; i <= 5; i++) {
     const el = document.getElementById(`elig-step-${i}`);
     if (el) el.style.display = 'none';
   }
@@ -2514,9 +2546,24 @@ function showEligResult(type, title, message, eligibleFrom, showCalendar, daysTo
   }
 
   cardEl.className = 'elig-result-card ' + type;
+  let tipsHTML = '';
+  if (type === 'eligible' || arguments[6] === true) {
+    tipsHTML = `
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1);">
+        <strong>💡 Health Opinion & Tips:</strong>
+        <ul style="margin-top: 0.5rem; padding-left: 1.2rem; font-size: 0.8rem; color: var(--text-secondary);">
+          <li>Eat iron-rich foods like spinach, red meat, and beans before your donation.</li>
+          <li>Drink an extra 16 oz. of water before your appointment.</li>
+          <li>Ensure you get a good night's sleep (7-9 hours).</li>
+          <li>Avoid heavy exercise or lifting immediately after donating.</li>
+        </ul>
+      </div>
+    `;
+  }
   cardEl.innerHTML = `
     <div class="elig-result-title">${title}</div>
     <div style="font-size:0.85rem; line-height:1.6;">${message}${nextDate}</div>
+    ${tipsHTML}
   `;
 }
 

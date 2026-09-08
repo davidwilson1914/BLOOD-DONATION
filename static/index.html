@@ -299,49 +299,6 @@
 
         <p class="hero-tagline">⚡ Instant alert to 100+ verified donors near you · Tamil Nadu Network</p>
 
-        <!-- Live Emergency Feed -->
-
-        <div style="text-align:left; margin-top:1rem;">
-
-          <div class="feed-header">
-
-            <div class="feed-title">
-
-              <span class="live-dot"></span>
-
-              Live Emergency Feed
-
-            </div>
-
-            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Real-time updates</span>
-
-          </div>
-
-          <div class="feed-scroll" id="live-emergency-feed">
-
-            <!-- Skeleton loaders while loading -->
-
-            <div class="skeleton-card">
-
-              <div class="skeleton skeleton-title"></div>
-
-              <div class="skeleton skeleton-text"></div>
-
-              <div class="skeleton skeleton-text" style="width:70%"></div>
-
-            </div>
-
-            <div class="skeleton-card">
-
-              <div class="skeleton skeleton-title"></div>
-
-              <div class="skeleton skeleton-text"></div>
-
-            </div>
-
-          </div>
-
-        </div>
 
       </div>
 
@@ -481,6 +438,54 @@
 
         </div>
 
+
+        <!-- Moved Live Emergency Feed -->
+        <div class="moved-feed-container" style="margin-top: 2.5rem; padding: 1.5rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 1rem; width: 100%; box-sizing: border-box;">
+        <!-- Live Emergency Feed -->
+
+        <div style="text-align:left; margin-top:1rem;">
+
+          <div class="feed-header">
+
+            <div class="feed-title">
+
+              <span class="live-dot"></span>
+
+              Live Emergency Feed
+
+            </div>
+
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Real-time updates</span>
+
+          </div>
+
+          <div class="feed-scroll" id="live-emergency-feed">
+
+            <!-- Skeleton loaders while loading -->
+
+            <div class="skeleton-card">
+
+              <div class="skeleton skeleton-title"></div>
+
+              <div class="skeleton skeleton-text"></div>
+
+              <div class="skeleton skeleton-text" style="width:70%"></div>
+
+            </div>
+
+            <div class="skeleton-card">
+
+              <div class="skeleton skeleton-title"></div>
+
+              <div class="skeleton skeleton-text"></div>
+
+            </div>
+
+          </div>
+
+        </div>
+        </div>
+
         <!-- Ultra-Minimalist Metric Banner (Only in Donor Page below Registration Bar) -->
 
         <section class="minimal-stats-banner" style="margin-top: 2rem;">
@@ -554,7 +559,7 @@
                 <span class="eligibility-icon">🧬</span>
                 <div style="flex:1;">
                   <div class="eligibility-title">Am I Eligible to Donate Today?</div>
-                  <div class="eligibility-sub">Take the 3-step eligibility check</div>
+                  <div class="eligibility-sub">Take the 5-step eligibility check</div>
                 </div>
                 <button class="eligibility-toggle-btn" id="eligibility-toggle-btn" onclick="toggleEligibilityWizard()">
                   Check Now →
@@ -562,7 +567,7 @@
               </div>
               <div id="eligibility-wizard" style="display:none; padding-top:1rem;">
                 <div class="eligibility-step" id="elig-step-1">
-                  <div class="elig-step-badge">Step 1 of 3</div>
+                  <div class="elig-step-badge">Step 1 of 5</div>
                   <div class="elig-question">📅 When did you last donate blood?</div>
                   <div class="elig-choices">
                     <button class="elig-choice-btn" onclick="selectEligStep1('never')">🩸 Never donated before</button>
@@ -571,7 +576,7 @@
                   </div>
                 </div>
                 <div class="eligibility-step" id="elig-step-2" style="display:none;">
-                  <div class="elig-step-badge">Step 2 of 3</div>
+                  <div class="elig-step-badge">Step 2 of 5</div>
                   <div class="elig-question">💊 Any ongoing medications or tattoo in last 6 months?</div>
                   <div class="elig-choices">
                     <button class="elig-choice-btn" onclick="selectEligStep2('no')">✅ No, I am healthy</button>
@@ -579,7 +584,7 @@
                   </div>
                 </div>
                 <div class="eligibility-step" id="elig-step-3" style="display:none;">
-                  <div class="elig-step-badge">Step 3 of 3</div>
+                  <div class="elig-step-badge">Step 3 of 5</div>
                   <div class="elig-question">⚖️ Is your body weight more than 50 kg?</div>
                   <div class="elig-choices">
                     <button class="elig-choice-btn" onclick="selectEligStep3('yes')">✅ Yes, above 50 kg</button>
