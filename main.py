@@ -262,14 +262,25 @@ def create_blood_request(
         hospital=request_in.hospital_name or "Nearby Hospital"
     )
     # Send Email Alert via Resend
-    test_donor_email = "dsam88732@gmail.com"  # சோதனை செய்ய உங்கள் Email முகவரியை உள்ளிடவும்
-
-    notification_service.send_email_alert(
-        donor_email=test_donor_email,
-        blood_group=str(request_in.blood_type_needed.value if hasattr(request_in.blood_type_needed, 'value') else request_in.blood_type_needed),
-        location=str(request_in.location.city if hasattr(request_in.location, 'city') else request_in.location),
-        phone="9876543210"
-    )
+    try:
+        test_donor_email = "dsam88732@gmail.com"
+        notification_service.send_email_alert(
+            donor_email=test_donor_email,
+            blood_group=str(request_in.blood_type_needed.value if hasattr(request_in.blood_type_needed, 'value') else request_in.blood_type_needed),
+            location=str(request_in.location.city if hasattr(request_in.location, 'city') else 'Chennai'),
+            phone="9876543210"
+        )
+        if hasattr(notification_service, 'broadcast_blood_request'):
+            notification_service.broadcast_blood_request(
+                patient_name=getattr(request_in, 'patient_name', 'Emergency Patient'),
+                blood_group=str(getattr(request_in, 'blood_type', 'O+')),
+                city=getattr(request_in, 'city', 'Chennai'),
+                urgency="HIGH",
+                hospital=getattr(request_in, 'hospital_name', 'Local Hospital')
+            )
+        print("Email alert triggered successfully!")
+    except Exception as e:
+        print("Notification trigger error:", str(e))
     return new_request
 
 
