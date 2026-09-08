@@ -78,19 +78,19 @@ function updateDrawerActiveLink(itemKey) {
 // ═══════════════════════════════════════════
 function switchMode(mode) {
   const seekerBtn = document.getElementById('mode-btn-seeker');
-  const donorBtn  = document.getElementById('mode-btn-donor');
+  const donorBtn = document.getElementById('mode-btn-donor');
   const emergencyArea = document.getElementById('emergency-btn-area');
 
   if (mode === 'seeker') {
     seekerBtn && seekerBtn.classList.add('active-red');
     seekerBtn && seekerBtn.classList.remove('active-blue');
-    donorBtn  && donorBtn.classList.remove('active-red', 'active-blue');
+    donorBtn && donorBtn.classList.remove('active-red', 'active-blue');
     // Show big red pulsing button, switch to seeker panel
     if (emergencyArea) emergencyArea.style.display = 'inline-flex';
     switchRole('seeker');
   } else {
-    donorBtn  && donorBtn.classList.add('active-blue');
-    donorBtn  && donorBtn.classList.remove('active-red');
+    donorBtn && donorBtn.classList.add('active-blue');
+    donorBtn && donorBtn.classList.remove('active-red');
     seekerBtn && seekerBtn.classList.remove('active-red', 'active-blue');
     // Hide emergency button for donor mode, switch to donor panel
     if (emergencyArea) emergencyArea.style.display = 'none';
@@ -116,7 +116,7 @@ function renderLiveEmergencyFeed() {
       title: `${r.blood_type_needed || r.bloodType || 'O+'} Blood Needed — ${r.units_required || 1} unit(s)`,
       location: r.hospital_location || r.location?.city || 'Chennai',
       urgency: (r.urgency_level || r.urgency || 'HIGH').toLowerCase(),
-      time: r.created_at ? new Date(r.created_at).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'}) : 'Just now',
+      time: r.created_at ? new Date(r.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Just now',
       patientName: r.patient_name || 'Patient'
     });
   });
@@ -149,12 +149,12 @@ function renderLiveEmergencyFeed() {
 
   container.innerHTML = feedItems.map((item, i) => {
     const urgencyClass = item.urgency === 'critical' ? 'critical' :
-                         item.urgency === 'high' ? 'high' :
-                         item.urgency === 'medium' ? 'medium' : 'low';
+      item.urgency === 'high' ? 'high' :
+        item.urgency === 'medium' ? 'medium' : 'low';
     const urgencyLabel = item.type === 'donor' ? '🟢 DONOR READY' :
-                         item.urgency === 'critical' ? '🔴 CRITICAL' :
-                         item.urgency === 'high' ? '🟠 URGENT' :
-                         item.urgency === 'medium' ? '🟡 MEDIUM' : '🟢 LOW';
+      item.urgency === 'critical' ? '🔴 CRITICAL' :
+        item.urgency === 'high' ? '🟠 URGENT' :
+          item.urgency === 'medium' ? '🟡 MEDIUM' : '🟢 LOW';
     return `
       <div class="feed-card urgency-${urgencyClass}" style="animation-delay:${i * 0.07}s">
         <div class="feed-blood-badge">${item.bloodType}</div>
@@ -235,7 +235,7 @@ function connectLiveEventStream() {
       if (data.type === 'notification') {
         handleIncomingLiveNotification(data);
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   liveEventSource.onerror = () => {
@@ -511,7 +511,7 @@ function getSavedGoogleAccounts() {
         return parsed.filter(a => a && a.email && a.email !== 'davidwilson1914@gmail.com');
       }
     }
-  } catch (e) {}
+  } catch (e) { }
   return [];
 }
 
@@ -526,7 +526,7 @@ function saveGoogleAccount(name, email) {
       accounts.push({ name: name || email.split('@')[0], email, initials, color });
       localStorage.setItem('lp_saved_google_accounts', JSON.stringify(accounts));
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function openGooglePicker() {
@@ -583,7 +583,7 @@ function selectGoogleAccount(index) {
   const accounts = getSavedGoogleAccounts();
   const acc = accounts[index];
   if (!acc) return;
-  
+
   pendingGoogleUser = { name: acc.name, email: acc.email };
   showGoogleVerifyView(acc.email);
 }
@@ -728,7 +728,7 @@ function getSavedFacebookAccounts() {
         return parsed.filter(a => a && a.email && a.email !== 'davidwilson1914@facebook.com');
       }
     }
-  } catch (e) {}
+  } catch (e) { }
   return [];
 }
 
@@ -740,7 +740,7 @@ function saveFacebookAccount(name, email) {
       accounts.push({ name: name || email.split('@')[0], email });
       localStorage.setItem('lp_saved_fb_accounts', JSON.stringify(accounts));
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function openFacebookPicker() {
@@ -935,18 +935,18 @@ function switchRole(role) {
   if (legacyBtn) legacyBtn.classList.add('active');
 
   const donorView = document.getElementById('view-donor');
-  const campView  = document.getElementById('view-campaigns');
+  const campView = document.getElementById('view-campaigns');
   const seekerView = document.getElementById('view-seeker');
 
-  if (donorView)  donorView.style.display  = role === 'donor'     ? 'block' : 'none';
-  if (campView)   campView.style.display   = role === 'campaigns'  ? 'block' : 'none';
-  if (seekerView) seekerView.style.display = role === 'seeker'    ? 'block' : 'none';
+  if (donorView) donorView.style.display = role === 'donor' ? 'block' : 'none';
+  if (campView) campView.style.display = role === 'campaigns' ? 'block' : 'none';
+  if (seekerView) seekerView.style.display = role === 'seeker' ? 'block' : 'none';
 
   // Sync mode-toggle-btn pills
   const seekerModeBtn = document.getElementById('mode-btn-seeker');
-  const donorModeBtn  = document.getElementById('mode-btn-donor');
+  const donorModeBtn = document.getElementById('mode-btn-donor');
   if (seekerModeBtn) seekerModeBtn.classList.toggle('active-red', role === 'seeker');
-  if (donorModeBtn)  donorModeBtn.classList.toggle('active-blue', role === 'donor');
+  if (donorModeBtn) donorModeBtn.classList.toggle('active-blue', role === 'donor');
 
   if (role === 'donor') {
     handleActiveCampaignClick();
@@ -1220,8 +1220,8 @@ function renderRegisteredDonors() {
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span class="card-blood-badge">🩸 ${bloodType}</span>
           ${isNew
-            ? '<span class="badge-new">🆕 NEW</span>'
-            : '<span class="badge-verified">✅ Verified</span>'}
+        ? '<span class="badge-new">🆕 NEW</span>'
+        : '<span class="badge-verified">✅ Verified</span>'}
         </div>
         <div class="card-title">${name}</div>
         <div class="card-meta-row">📍 <b>${city}</b></div>
@@ -1245,10 +1245,10 @@ function renderRegisteredDonors() {
 async function handleHeroDonorRegisterSubmit(event) {
   event.preventDefault();
 
-  const name     = document.getElementById('hero-donor-name').value.trim();
-  const phone    = document.getElementById('hero-donor-phone').value.trim();
+  const name = document.getElementById('hero-donor-name').value.trim();
+  const phone = document.getElementById('hero-donor-phone').value.trim();
   const bloodType = document.getElementById('hero-donor-blood-type').value;
-  const city     = document.getElementById('hero-donor-city').value.trim();
+  const city = document.getElementById('hero-donor-city').value.trim();
   const location = document.getElementById('hero-donor-location').value.trim();
 
   if (!name || !phone || !city) {
@@ -1379,11 +1379,11 @@ async function handleCreateRequest(event) {
   event.preventDefault();
 
   const patientName = document.getElementById('req-patient').value;
-  const phone       = document.getElementById('req-phone').value;
-  const bloodType   = document.getElementById('req-bloodtype').value;
-  const units       = parseInt(document.getElementById('req-units').value) || 1;
-  const urgency     = document.getElementById('req-urgency').value;
-  const city        = document.getElementById('req-city').value;
+  const phone = document.getElementById('req-phone').value;
+  const bloodType = document.getElementById('req-bloodtype').value;
+  const units = parseInt(document.getElementById('req-units').value) || 1;
+  const urgency = document.getElementById('req-urgency').value;
+  const city = document.getElementById('req-city').value;
   const hospitalLoc = document.getElementById('req-location').value;
 
   const payload = {
@@ -1398,7 +1398,7 @@ async function handleCreateRequest(event) {
 
   let requestId = Date.now(); // fallback id
   try {
-    const res = await fetch(`/api/requests?requester_id=${currentUserId}&requester_role=PATIENT`, {
+    const res = await fetch(`/api/requests?requester_id=${currentUserId}&requester_role=seeker`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -1618,17 +1618,17 @@ function renderCampaignCards() {
   if (!container) return;
 
   container.innerHTML = validActive.map(camp => {
-    const statusInfo  = getCampaignStatus(camp);
-    const percent     = Math.min(100, Math.round(((camp.units_collected || 0) / (camp.target_units || 1)) * 100));
-    const locStr      = camp.location ? (camp.location.address || camp.location.city) : 'Chennai, Tamil Nadu';
-    const phoneStr    = camp.contact_phone || '+91 98401 12345';
+    const statusInfo = getCampaignStatus(camp);
+    const percent = Math.min(100, Math.round(((camp.units_collected || 0) / (camp.target_units || 1)) * 100));
+    const locStr = camp.location ? (camp.location.address || camp.location.city) : 'Chennai, Tamil Nadu';
+    const phoneStr = camp.contact_phone || '+91 98401 12345';
     const formattedStart = formatToDDMMYYYY(camp.start_date);
-    const formattedEnd   = formatToDDMMYYYY(camp.end_date);
-    const lat = camp.location ? camp.location.latitude  : 13.0827;
+    const formattedEnd = formatToDDMMYYYY(camp.end_date);
+    const lat = camp.location ? camp.location.latitude : 13.0827;
     const lon = camp.location ? camp.location.longitude : 80.2707;
-    const isUpcoming  = statusInfo.isUpcoming;
-    const distLabel   = camp.distanceKm < 999 ? `${camp.distanceKm.toFixed(1)} km away` : '';
-    const encodedAddr  = encodeURIComponent(locStr);
+    const isUpcoming = statusInfo.isUpcoming;
+    const distLabel = camp.distanceKm < 999 ? `${camp.distanceKm.toFixed(1)} km away` : '';
+    const encodedAddr = encodeURIComponent(locStr);
     const encodedTitle = encodeURIComponent(camp.title);
 
     return `
@@ -1964,9 +1964,9 @@ async function loadNotifications() {
     const typeIcon = { DONOR_UPDATE: '🩸', CAMPAIGN_UPDATE: '📢', BLOOD_REQUEST: '🚨' };
     container.innerHTML = notifs.slice(0, 30).map(n => {
       const icon = typeIcon[(n.payload && n.payload.type) || ''] || '🔔';
-      const time = new Date(n.sent_at).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+      const time = new Date(n.sent_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       const borderColor = n.payload?.type === 'BLOOD_REQUEST' ? 'var(--red)' :
-                          n.payload?.type === 'CAMPAIGN_UPDATE' ? 'var(--orange)' : 'var(--green)';
+        n.payload?.type === 'CAMPAIGN_UPDATE' ? 'var(--orange)' : 'var(--green)';
       return `
         <div class="notif-card" style="border-left:3px solid ${borderColor}; ${n.read ? 'opacity:0.7;' : ''}">
           <div class="notif-card-header">
@@ -2020,7 +2020,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const cleanedFb = parsedFb.filter(a => a && a.email && !LEGACY_EMAILS.includes(a.email));
       localStorage.setItem('lp_saved_fb_accounts', JSON.stringify(cleanedFb));
     }
-  } catch (e) {}
+  } catch (e) { }
 });
 
 // ═══════════════════════════════════════════
@@ -2031,10 +2031,10 @@ function showBroadcastToast(title, message, type) {
   const existing = document.querySelectorAll('.lp-toast');
   if (existing.length >= 3) existing[0].remove();
 
-  const isBlood   = type === 'BLOOD_REQUEST';
-  const isCamp    = type === 'CAMPAIGN_UPDATE';
+  const isBlood = type === 'BLOOD_REQUEST';
+  const isCamp = type === 'CAMPAIGN_UPDATE';
   const borderCol = isBlood ? '#E53E3E' : isCamp ? '#DD6B20' : '#38A169';
-  const icon      = isBlood ? '🚨' : isCamp ? '📢' : '🩸';
+  const icon = isBlood ? '🚨' : isCamp ? '📢' : '🩸';
 
   const toast = document.createElement('div');
   toast.className = 'lp-toast';
@@ -2142,7 +2142,7 @@ async function triggerPulseSOSRequest() {
     if (typeof reverseGeocode === 'function') {
       city = await reverseGeocode(lat, lon) || 'Chennai';
     }
-  } catch (e) {}
+  } catch (e) { }
   setStep(1, 'done');
 
   // Step 2: Get blood group from saved profile
@@ -2158,7 +2158,7 @@ async function triggerPulseSOSRequest() {
     // Also check donor form if filled
     const heroBlood = document.getElementById('hero-donor-blood-type');
     if (heroBlood && heroBlood.value) bloodGroup = heroBlood.value;
-  } catch (e) {}
+  } catch (e) { }
   const detailsEl = document.getElementById('sos-confirm-details');
   if (detailsEl) detailsEl.innerText =
     `Emergency request for ${bloodGroup} blood at ${city}. Broadcasting to nearby donors now...`;
@@ -2181,7 +2181,7 @@ async function triggerPulseSOSRequest() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-  } catch (e) {}
+  } catch (e) { }
   await new Promise(r => setTimeout(r, 800));
   setStep(3, 'done');
 
@@ -2244,8 +2244,8 @@ function startEscalationTimer(requestId, bloodGroup, city, urgency) {
     );
     // Re-trigger notification via SSE (server-side notify)
     try {
-      await fetch(`/api/requests/${requestId}/escalate`, { method: 'POST' }).catch(() => {});
-    } catch (e) {}
+      await fetch(`/api/requests/${requestId}/escalate`, { method: 'POST' }).catch(() => { });
+    } catch (e) { }
     loadNotifications();
     loadRequests();
   }, tier1Delay);
@@ -2334,7 +2334,7 @@ function startVoiceRequest() {
 
 function stopVoiceRecognition() {
   voiceListening = false;
-  if (voiceRecognition) { try { voiceRecognition.stop(); } catch (e) {} voiceRecognition = null; }
+  if (voiceRecognition) { try { voiceRecognition.stop(); } catch (e) { } voiceRecognition = null; }
   const micBtn = document.getElementById('voice-mic-btn');
   const micIcon = document.getElementById('voice-mic-icon');
   const micLabel = document.getElementById('voice-btn-label');
@@ -2495,7 +2495,7 @@ function showEligResult(type, title, message, eligibleFrom, showCalendar, daysTo
   if (daysToWait > 0) {
     const d = new Date();
     d.setDate(d.getDate() + daysToWait);
-    nextDate = `<br><strong>Next eligible date: ${d.toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' })}</strong>`;
+    nextDate = `<br><strong>Next eligible date: ${d.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</strong>`;
     if (calBtn) calBtn.style.display = 'inline-flex';
     // Store for calendar
     window._eligNextDate = d;
